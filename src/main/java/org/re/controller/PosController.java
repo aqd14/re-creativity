@@ -9,11 +9,11 @@ package org.re.controller;
  */
 public class PosController {
 
-	/**
-	 * 
-	 */
-	public PosController() {
-		// TODO Auto-generated constructor stub
-	}
+    /**
+     * 
+     */
+    public PosController() {
+        // TODO Auto-generated constructor stub
+    }
 
 }

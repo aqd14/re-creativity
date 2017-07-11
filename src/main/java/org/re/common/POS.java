@@ -8,7 +8,5 @@ package org.re.common;
  *
  */
 public enum POS {
-	UNASSIGNED,
-	NOUN,
-	VERB
+    UNASSIGNED, NOUN, VERB
 }
