@@ -4,11 +4,15 @@
 	<groupId>re-creativity</groupId>
 	<artifactId>re-creativity</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	
+
 	<organization>
 		<name>Mississippi State University</name>
 		<url>http://www.cse.msstate.edu/</url>
 	</organization>
+	<scm>
+		<developerConnection>Anh Do</developerConnection>
+		<url>https://github.com/aqd14/re-creativity.git</url>
+	</scm>
 	<build>
 		<plugins>
 			<plugin>
@@ -35,5 +39,24 @@
 			<artifactId>mallet</artifactId>
 			<version>2.0.8</version>
 		</dependency>
+		<dependency>
+			<groupId>com.jfoenix</groupId>
+			<artifactId>jfoenix</artifactId>
+			<version>1.5.0</version>
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/edu.stanford.nlp/stanford-corenlp -->
+		<dependency>
+			<groupId>edu.stanford.nlp</groupId>
+			<artifactId>stanford-corenlp</artifactId>
+			<version>3.8.0</version>
+		</dependency>
+		
+<!-- 		<dependency>
+			<groupId>edu.stanford.nlp</groupId>
+			<artifactId>stanford-pos-tagger</artifactId>
+			<version>3.8.0</version>
+			<scope>system</scope>
+			<systemPath>${project.basedir}/src/main/resources/lib/stanford-postagger-3.8.0.jar</systemPath>
+		</dependency> -->
 	</dependencies>
 </project>
