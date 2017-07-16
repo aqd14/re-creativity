@@ -99,7 +99,11 @@ public class TopicModelingController implements Initializable {
 
     // Default constructor
     public TopicModelingController() {
-
+        topics = FXCollections.observableArrayList();
+    }
+    
+    public ObservableList<Topic> getTopics() {
+        return topics;
     }
 
     @Override
@@ -161,7 +165,7 @@ public class TopicModelingController implements Initializable {
      * </p>
      * @param wordsPerTopic Number of words per topic to be extracted
      */
-    private void extractTopicInfo(int wordsPerTopic) {
+    public void extractTopicInfo(int wordsPerTopic) {
         // The data alphabet maps word IDs to strings
         Alphabet dataAlphabet = instances.getDataAlphabet();
         // Estimate the topic distribution of the first instance,
@@ -209,7 +213,7 @@ public class TopicModelingController implements Initializable {
      * @throws IOException
      * @throws URISyntaxException
      */
-    private void extractTopics(File f, int numTopics, int numIteration, int numThreads)
+    public void extractTopics(File f, int numTopics, int numIteration, int numThreads)
             throws IOException, URISyntaxException {
         // Begin by importing documents from text to feature sequences
         ArrayList<Pipe> pipeList = new ArrayList<Pipe>();
@@ -229,28 +233,19 @@ public class TopicModelingController implements Initializable {
         instances = new InstanceList(new SerialPipes(pipeList));
 
         Reader fileReader = new InputStreamReader(new FileInputStream(f), "UTF-8");
-        instances
-                .addThruPipe(new CsvIterator(fileReader, Pattern.compile("^(\\S*)[\\s,]*(\\S*)[\\s,]*(.*)$"), 3, 2, 1)); // data,
-                                                                                                                         // label,
-                                                                                                                         // name
-                                                                                                                         // fields
+        // data, label, name, fields
+        instances.addThruPipe(new CsvIterator(fileReader, Pattern.compile("^(\\S*)[\\s,]*(\\S*)[\\s,]*(.*)$"), 3, 2, 1));
 
         // Create a model with 100 topics, alpha_t = 0.01, beta_w = 0.01
         // Note that the first parameter is passed as the sum over topics, while
-        // the second is the parameter for a single dimension of the Dirichlet
-        // prior.
+        // the second is the parameter for a single dimension of the Dirichlet prior.
         model = new ParallelTopicModel(numTopics, 1.0, 0.01);
         model.addInstances(instances);
-        // Use two parallel samplers, which each look at one half the corpus and
-        // combine
-        // statistics after every iteration.
+        // Use two parallel samplers, which each look at one half the corpus and 
+        // combine statistics after every iteration.
         model.setNumThreads(numThreads);
         model.setNumIterations(numIteration);
         model.estimate();
-
-        // int[][] typeTopics = model.getTypeTopicCounts();
-        // int[] tokens = model.getTokensPerTopic();
-        // System.out.println(model.displayTopWords(1, true));
     }
 
     /**
