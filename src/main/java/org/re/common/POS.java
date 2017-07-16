@@ -8,5 +8,10 @@ package org.re.common;
  *
  */
 public enum POS {
-    UNASSIGNED, NOUN, VERB
+    UNASSIGNED, 
+    NOUN, // NN
+    VERB,
+    VERB_BASE_FORM, // VB
+    VERB_PRESENT_TENSE, // VBZ
+    VERB_PAST_TENSE, // VBN
 }

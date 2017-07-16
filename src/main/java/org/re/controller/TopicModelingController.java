@@ -104,9 +104,6 @@ public class TopicModelingController implements Initializable {
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        // Load POS tagger
-        loadPOSTagger();
-
         browseFileBT.setOnAction(event -> {
             SELECTED_FILE = loadFile();
             if (SELECTED_FILE != null) {
@@ -149,7 +146,7 @@ public class TopicModelingController implements Initializable {
             topics = FXCollections.observableArrayList();
             // Extract topics and construct table view
             extractTopics(SELECTED_FILE, NUMBER_OF_TOPICS, NUMBER_OF_ITERATIONS, NUMBER_OF_THREADS);
-            extractTopicInfo();
+            extractTopicInfo(5);
             contructTopicTableView();
         } catch (IOException | URISyntaxException e) {
             // TODO Auto-generated catch block
@@ -158,9 +155,13 @@ public class TopicModelingController implements Initializable {
     }
 
     /**
-     * Extract needed topic modeling information
+     * <p>
+     * Extract topic modeling information. 
+     * Each TopicWord object contain the words and their corresponding weights
+     * </p>
+     * @param wordsPerTopic Number of words per topic to be extracted
      */
-    private void extractTopicInfo() {
+    private void extractTopicInfo(int wordsPerTopic) {
         // The data alphabet maps word IDs to strings
         Alphabet dataAlphabet = instances.getDataAlphabet();
         // Estimate the topic distribution of the first instance,
@@ -180,7 +181,7 @@ public class TopicModelingController implements Initializable {
             ArrayList<TopicWord> topicWords = new ArrayList<>();
             // Loop through each word in current topic and create a list of
             // words
-            while (iterator.hasNext() && rank < 5) {
+            while (iterator.hasNext() && rank < wordsPerTopic) {
                 IDSorter idCountPair = iterator.next();
                 TopicWord tw = new TopicWord();
                 tw.setWord(new Word(dataAlphabet.lookupObject(idCountPair.getID()).toString()));
@@ -351,18 +352,5 @@ public class TopicModelingController implements Initializable {
                 NUMBER_OF_THREADS = newValue;
             }
         });
-    }
-
-    private void loadPOSTagger() {
-        // InputStream is =
-        // getClass().getClassLoader().getResourceAsStream("models/english-left3words-distsim.tagger");
-        // MaxentTagger tagger = new MaxentTagger(is);
-        // // The sample string
-        // String sample = "The run lasted thirty minutes";
-        // String sample2 = "We run three miles everyday";
-        //
-        // // Output the result
-        // System.out.println(tagger.tagString(sample));
-        // System.out.println(tagger.tagString("run"));
     }
 }

@@ -6,6 +6,8 @@ package org.re.utils;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 
+import org.re.common.POS;
+
 /**
  * @author doquocanh-macbook
  *
@@ -35,5 +37,32 @@ public class Utils {
         }
         bd.append(src.substring(0, pos)).append(replacement).append(src.substring(pos + old.length(), src.length()));
         return bd.toString();
+    }
+    
+    /**
+     * Convert from string to enum tag for clarity
+     * @param tag   Tagged string to be converted
+     * @return      Part-of-speech tagging
+     */
+    public static POS convertPOS(String tag) {
+        POS pos = POS.UNASSIGNED;
+        switch (tag) {
+            case "NN":
+                pos = POS.NOUN;
+                break;
+            case "VB":
+                pos = POS.VERB_BASE_FORM;
+                break;
+            case "VBZ":
+                pos = POS.VERB_PRESENT_TENSE;
+                break;
+            case "VBN":
+                pos = POS.VERB_PAST_TENSE;
+                break;
+            default:
+                pos = POS.UNASSIGNED;
+                break;
+        }
+        return pos;
     }
 }

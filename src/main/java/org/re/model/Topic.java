@@ -60,6 +60,15 @@ public class Topic extends RecursiveTreeObject<Topic> implements Comparable<Topi
     public ArrayList<TopicWord> getTopicWords() {
         return topicWords;
     }
+    
+    /**
+     * Return the number of words per topic.
+     * 
+     * @return Number of words per topic
+     */
+    public int getWordsPerTopic() {
+        return topicWords == null ? 0 : topicWords.size();
+    }
 
     /**
      * @param topicWords
