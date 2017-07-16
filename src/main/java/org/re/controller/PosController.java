@@ -87,7 +87,7 @@ public class PosController {
      * @param file
      * @return List of "Word" objects
      */
-    public List<Word> getTaggedWords(File file) {
+    public ArrayList<Word> getTaggedWords(File file) {
         // List of "Word" objects
         ArrayList<Word> taggedWords = new ArrayList<>();
         // Extract tagged sentences
@@ -114,14 +114,17 @@ public class PosController {
      * @param t Topic that contains words to be assigned
      */
     public void assignPOS(File file, Topic t) {
+        ArrayList<Word> words = getTaggedWords(file);
+        assignPOS(t, words);
+    }
+    
+    public void assignPOS(Topic t, ArrayList<Word> words) {
         // Stop assigning part-of-speech for words within topic if word list is empty
         if (t.getWordsPerTopic() == 0) {
             return;
         }
         
         ArrayList<TopicWord> topicWordList = t.getTopicWords();
-        List<Word> words = getTaggedWords(file);
-
         for (TopicWord tw : topicWordList) {
             String word = tw.getWord().getContent();
             // Count number of occurrence for each part-of-speech
