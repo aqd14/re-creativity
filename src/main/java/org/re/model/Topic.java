@@ -85,7 +85,9 @@ public class Topic extends RecursiveTreeObject<Topic> implements Comparable<Topi
         }
         StringBuilder bd = new StringBuilder();
         for (TopicWord tw : topicWords) {
-            bd.append(tw.getWord().getContent()).append(" (").append(tw.getWeight()).append(")\n");
+            bd.append(tw.getWord().getContent()).append(" (")
+            .append(tw.getWeight()).append(")").append("\t")
+            .append(tw.getWord().getPos()).append("\n");
         }
         String content = bd.toString();
         // Replace the last comma

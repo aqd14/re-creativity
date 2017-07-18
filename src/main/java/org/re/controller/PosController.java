@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
+import org.apache.log4j.Logger;
 import org.re.common.POS;
 import org.re.model.Topic;
 import org.re.model.TopicWord;
@@ -30,6 +31,8 @@ import edu.stanford.nlp.tagger.maxent.MaxentTagger;
  *
  */
 public class PosController {
+    // Logger
+    final static Logger logger = Logger.getLogger(PosController.class);
     // Attributes
     private MaxentTagger tagger;
     
@@ -97,6 +100,7 @@ public class PosController {
                 for (TaggedWord taggedWord : sentence) {
                     Word word = new Word(taggedWord.value(), Utils.convertPOS(taggedWord.tag()));
                     taggedWords.add(word);
+                    logger.debug("Added tagged word: " + taggedWord.value() + " - " + taggedWord.tag());
                 }
             }
         }
@@ -118,6 +122,11 @@ public class PosController {
         assignPOS(t, words);
     }
     
+    /**
+     * Find the dominant part-of-speech for each words in a given topic
+     * @param t
+     * @param words
+     */
     public void assignPOS(Topic t, ArrayList<Word> words) {
         // Stop assigning part-of-speech for words within topic if word list is empty
         if (t.getWordsPerTopic() == 0) {
@@ -134,26 +143,47 @@ public class PosController {
             for (Word w : words) {
                 if (word.equals(w.getContent())) {
                     POS pos = w.getPos();
-                    if (pos == POS.NOUN) {
+                    if (pos == POS.NOUN 
+                            || pos == POS.NOUN_PLURAL 
+                            || pos == POS.PROPER_NOUN_SINGULAR
+                            || pos == POS.PROPER_NOUN_PLURAL) {
                         nounCount ++;
                     } else if (pos == POS.VERB_BASE_FORM 
-                            || pos == POS.VERB_PRESENT_TENSE
-                            || pos == POS.VERB_PAST_TENSE) {
+                            || pos == POS.VERB_GERUND
+                            || pos == POS.VERB_PAST_TENSE
+                            || pos == POS.VERB_PAST_PARTICIPLE
+                            || pos == POS.VERB_NON_3RD_PERSON
+                            || pos == POS.VERB_3RD_PERSON) {
                         verbCount ++;
                     } else {
 
                     }
                 }
             }
-            if (nounCount > verbCount) {
-                tw.getWord().setPos(POS.NOUN);
-            } else if (nounCount < verbCount) {
-                tw.getWord().setPos(POS.VERB);
-            } else { 
-                // TODO: Which part-of-speech should take if nounCount == verbCount?
-                tw.getWord().setPos(POS.UNASSIGNED);
-            }
             
+            // The word's part-of-speech can be either noun or verb
+            if (nounCount != 0 || verbCount != 0) {
+                if (nounCount > verbCount) {
+                    tw.getWord().setPos(POS.NOUN);
+                } else if (nounCount < verbCount) {
+                    tw.getWord().setPos(POS.VERB);
+                } else { 
+                    // TODO: Which part-of-speech should take if nounCount == verbCount?
+                    tw.getWord().setPos(POS.UNASSIGNED);
+                }
+            }
+            logger.debug("Word: " + word);
+            logger.debug("Noun count: " + nounCount);
+            logger.debug("Verb count: " + verbCount);
+            // The word's part-of-speech is neither noun nor verb
+            // Assign default part-of-speech based on the word alone
+            // TODO: Consider counting tagging for other part-of-speeches along with verb and noun 
+            if (nounCount == 0 && verbCount == 0) {
+                String tagged = tagger.tagString(word);
+                String tag = tagged.replace(word, "").replace("_", "").trim();
+                tw.getWord().setPos(Utils.convertPOS(tag));
+                logger.debug("Neither noun nor verb: " + tagged);
+            }
         }
     }
 }

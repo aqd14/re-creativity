@@ -50,14 +50,41 @@ public class Utils {
             case "NN":
                 pos = POS.NOUN;
                 break;
+            case "NNS":
+                pos = POS.NOUN_PLURAL;
+                break;
+            case "NNP":
+                pos = POS.PROPER_NOUN_SINGULAR;
+                break;
+            case "NNPS":
+                pos = POS.PROPER_NOUN_PLURAL;
+                break;
             case "VB":
                 pos = POS.VERB_BASE_FORM;
                 break;
-            case "VBZ":
-                pos = POS.VERB_PRESENT_TENSE;
-                break;
             case "VBN":
+                pos = POS.VERB_PAST_PARTICIPLE;
+                break;
+            case "VBD":
                 pos = POS.VERB_PAST_TENSE;
+                break;
+            case "VBG":
+                pos = POS.VERB_GERUND;
+                break;
+            case "VBP":
+                pos = POS.VERB_NON_3RD_PERSON;
+                break;
+            case "VBZ":
+                pos = POS.VERB_3RD_PERSON;
+                break;
+            case "JJ":
+                pos = POS.ADJECTIVE;
+                break;
+            case "RB":
+                pos = POS.ADVERD;
+                break;
+            case "CC":
+                pos = POS.CONJUNCTION;
                 break;
             default:
                 pos = POS.UNASSIGNED;

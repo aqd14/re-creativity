@@ -153,7 +153,6 @@ public class TopicModelingController implements Initializable {
             extractTopicInfo(5);
             contructTopicTableView();
         } catch (IOException | URISyntaxException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         }
     }
@@ -222,9 +221,7 @@ public class TopicModelingController implements Initializable {
         pipeList.add(new CharSequenceLowercase());
         pipeList.add(new CharSequence2TokenSequence(Pattern.compile("\\p{L}[\\p{L}\\p{P}]+\\p{L}")));
 
-        String stoplist = getClass().getClassLoader().getResource("stoplists/en.txt").toExternalForm().replace("file:",
-                "");
-        System.out.println("Resources: " + stoplist);
+        String stoplist = getClass().getClassLoader().getResource("stoplists/en.txt").toExternalForm().replace("file:","");
         File stopWords = new File(stoplist);
 
         pipeList.add(new TokenSequenceRemoveStopwords(stopWords, "UTF-8", false, false, false));
