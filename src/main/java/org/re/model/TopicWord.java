@@ -7,7 +7,7 @@ package org.re.model;
  * @author doquocanh-macbook
  *
  */
-public class TopicWord {
+public class TopicWord implements Comparable<TopicWord>{
     // Attributes
     private Word word;
     private double weight; //
@@ -57,5 +57,16 @@ public class TopicWord {
     @Override
     public String toString() {
         return this.word.toString() + " (" + this.weight + ")";
+    }
+
+    @Override
+    public int compareTo(TopicWord o) {
+        if (this.weight > o.weight) {
+            return 1;
+        } 
+        if (this.weight < o.weight) {
+            return -1;
+        } 
+        return 0;
     }
 }

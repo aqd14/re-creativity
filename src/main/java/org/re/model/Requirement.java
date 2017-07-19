@@ -1,6 +1,7 @@
 package org.re.model;
 
-import org.re.common.System;
+import org.re.common.SoftwareSystem;
+import org.re.common.Template;
 
 // Object represents for a completed requirement
 // Example: Firefox shall inform matched passwords
@@ -10,40 +11,36 @@ import org.re.common.System;
 //                       (Already flipped)
 public class Requirement {
     // Attributes
-    private System system; // Indicate which oss system the requirement belongs to
+    private SoftwareSystem system; // Indicate which oss system the requirement belongs to
     private Word opening; // Opening of a requirement. Such as: Firefox shall
     private Word verb;
     private Word noun;
     private Word object;
     
-    public Requirement(System system, Word opening, Word verb, Word noun, Word object) {
-        this.setSystem(system);
-        this.opening = opening;
+    public Requirement(SoftwareSystem system, Word verb, Word noun) {
+        this.system = system;
+        this.setOpening();
         this.verb = verb;
         this.noun = noun;
+        this.object = new Word("Default Object");
+    }
+    
+    public Requirement(SoftwareSystem system, Word verb, Word noun, Word object) {
+        this(system, verb, noun);
         this.object = object;
     }
     
-    @Override
-    public String toString() {
-        StringBuilder bd = new StringBuilder(opening.getContent());
-        bd.append(" ").append(verb.getContent()).
-        append(" ").append(noun.getContent()).
-        append(" ").append(object.getContent());
-        return bd.toString();
-    }
-
     /**
      * @return the system
      */
-    public System getSystem() {
+    public SoftwareSystem getSystem() {
         return system;
     }
 
     /**
      * @param system the system to set
      */
-    public void setSystem(System system) {
+    public void setSystem(SoftwareSystem system) {
         this.system = system;
     }
     
@@ -55,10 +52,17 @@ public class Requirement {
     }
 
     /**
+     * Opening phrase is determined upon the specified system
      * @param opening the opening to set
      */
-    public void setOpening(Word opening) {
-        this.opening = opening;
+    private void setOpening() {
+        if (system == SoftwareSystem.FIREFOX) {
+            opening = new Word(Template.FIREFOX_OPENING);
+        } else if (system == SoftwareSystem.MYLYN) {
+            opening = new Word(Template.MYLYN_OPENING);
+        } else {
+            opening = new Word("");
+        }
     }
 
     /**
@@ -101,5 +105,14 @@ public class Requirement {
      */
     public void setObject(Word object) {
         this.object = object;
+    }
+    
+    @Override
+    public String toString() {
+        StringBuilder bd = new StringBuilder(opening.getContent());
+        bd.append(" ").append(verb.getContent()).append(" (").append(verb.getPos()).append(")").
+        append(" ").append(noun.getContent()).append(" (").append(noun.getPos()).append(")").
+        append(" ").append(object.getContent());
+        return bd.toString();
     }
 }
