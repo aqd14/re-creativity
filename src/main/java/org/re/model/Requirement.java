@@ -3,21 +3,25 @@ package org.re.model;
 import org.re.common.SoftwareSystem;
 import org.re.common.Template;
 
+import com.jfoenix.controls.datamodels.treetable.RecursiveTreeObject;
+
 // Object represents for a completed requirement
 // Example: Firefox shall inform matched passwords
 //             |      |     |       |       |
 //             |      |     |       |       |
 //              Opening    Verb    Noun   Object (Additional from context to make sense for requirements)
 //                       (Already flipped)
-public class Requirement {
+public class Requirement extends RecursiveTreeObject<Requirement> {
     // Attributes
+    private String id;
     private SoftwareSystem system; // Indicate which oss system the requirement belongs to
     private Word opening; // Opening of a requirement. Such as: Firefox shall
     private Word verb;
     private Word noun;
     private Word object;
     
-    public Requirement(SoftwareSystem system, Word verb, Word noun) {
+    public Requirement(String id, SoftwareSystem system, Word verb, Word noun) {
+        this.id = id;
         this.system = system;
         this.setOpening();
         this.verb = verb;
@@ -25,11 +29,25 @@ public class Requirement {
         this.object = new Word("Default Object");
     }
     
-    public Requirement(SoftwareSystem system, Word verb, Word noun, Word object) {
-        this(system, verb, noun);
+    public Requirement(String id, SoftwareSystem system, Word verb, Word noun, Word object) {
+        this(id, system, verb, noun);
         this.object = object;
     }
     
+    /**
+     * @return the requirementId
+     */
+    public String getId() {
+        return id;
+    }
+
+    /**
+     * @param requirementId the requirementId to set
+     */
+    public void setId(String id) {
+        this.id = id;
+    }
+
     /**
      * @return the system
      */

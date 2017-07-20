@@ -23,7 +23,6 @@ public enum POS {
     PROPER_NOUN_PLURAL, // NNPS
     
     // Verb types
-    VERB,
     VERB_BASE_FORM, // VB
     VERB_GERUND, // VBG
     VERB_PAST_TENSE, // VBD

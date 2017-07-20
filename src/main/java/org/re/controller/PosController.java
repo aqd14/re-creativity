@@ -143,30 +143,24 @@ public class PosController {
             for (Word w : words) {
                 if (word.equals(w.getContent())) {
                     POS pos = w.getPos();
-                    if (pos == POS.NOUN 
-                            || pos == POS.NOUN_PLURAL 
-                            || pos == POS.PROPER_NOUN_SINGULAR
-                            || pos == POS.PROPER_NOUN_PLURAL) {
+                    if (Utils.isNoun(pos)) {
                         nounCount ++;
-                    } else if (pos == POS.VERB_BASE_FORM 
-                            || pos == POS.VERB_GERUND
-                            || pos == POS.VERB_PAST_TENSE
-                            || pos == POS.VERB_PAST_PARTICIPLE
-                            || pos == POS.VERB_NON_3RD_PERSON
-                            || pos == POS.VERB_3RD_PERSON) {
+                    } else if (Utils.isVerb(pos)) {
                         verbCount ++;
                     } else {
-
+                        logger.info("Other part-of-speech: " + pos);
                     }
                 }
             }
             
             // The word's part-of-speech can be either noun or verb
+            // TODO: Need to determine exact part-of-speech? 
+            // (E.g., Verb can be base form, gerund, 3rd person, etc..)
             if (nounCount != 0 || verbCount != 0) {
                 if (nounCount > verbCount) {
                     tw.getWord().setPos(POS.NOUN);
                 } else if (nounCount < verbCount) {
-                    tw.getWord().setPos(POS.VERB);
+                    tw.getWord().setPos(POS.VERB_BASE_FORM);
                 } else { 
                     // TODO: Which part-of-speech should take if nounCount == verbCount?
                     tw.getWord().setPos(POS.UNASSIGNED);

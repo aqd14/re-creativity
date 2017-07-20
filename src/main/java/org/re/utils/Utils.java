@@ -92,4 +92,17 @@ public class Utils {
         }
         return pos;
     }
+    
+    public static boolean isNoun(POS pos) {
+        return pos.equals(POS.NOUN) 
+                || pos.equals(POS.NOUN_PLURAL) 
+                || pos.equals(POS.PROPER_NOUN_SINGULAR)
+                || pos.equals(POS.PROPER_NOUN_PLURAL);
+    }
+    
+    public static boolean isVerb(POS pos) {
+        return pos.equals(POS.VERB_BASE_FORM) || pos.equals(POS.VERB_3RD_PERSON) 
+                || pos.equals(POS.VERB_GERUND) || pos.equals(POS.VERB_NON_3RD_PERSON) 
+                || pos.equals(POS.VERB_PAST_PARTICIPLE) || pos.equals(POS.VERB_PAST_TENSE);
+    }
 }

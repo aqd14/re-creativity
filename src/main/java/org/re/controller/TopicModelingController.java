@@ -17,10 +17,13 @@ import java.util.TreeSet;
 import java.util.regex.Pattern;
 
 import org.re.common.Message;
+import org.re.common.SoftwareSystem;
+import org.re.common.View;
 import org.re.model.Topic;
 import org.re.model.TopicWord;
 import org.re.model.Word;
 import org.re.utils.AlertFactory;
+import org.re.utils.StageFactory;
 
 import com.jfoenix.controls.JFXComboBox;
 import com.jfoenix.controls.JFXTextField;
@@ -45,7 +48,10 @@ import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
@@ -53,12 +59,13 @@ import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeTableColumn;
 import javafx.scene.layout.AnchorPane;
 import javafx.stage.FileChooser;
+import javafx.stage.Stage;
 
 /**
  * @author doquocanh-macbook
  *
  */
-public class TopicModelingController implements Initializable {
+public class TopicModelingController implements Initializable, IController {
     // Topic modeling
     private ParallelTopicModel model;
     private InstanceList instances;
@@ -151,7 +158,15 @@ public class TopicModelingController implements Initializable {
             // Extract topics and construct table view
             extractTopics(SELECTED_FILE, NUMBER_OF_TOPICS, NUMBER_OF_ITERATIONS, NUMBER_OF_THREADS);
             extractTopicInfo(5);
-            contructTopicTableView();
+            constructTableView();
+            // Determine part-of-speech for each topic words
+            PosController pc = new PosController();
+            ArrayList<Word> words = pc.getTaggedWords(SELECTED_FILE);
+            for (Topic t : topics) {
+                pc.assignPOS(t, words);
+            }
+         // Generate list of requirements from extracted topics
+            makeNewView(View.REQUIREMENT_VIEW, "Generated Requirements", "view/RequirementView.fxml");
         } catch (IOException | URISyntaxException e) {
             e.printStackTrace();
         }
@@ -274,12 +289,14 @@ public class TopicModelingController implements Initializable {
     /**
      * Generate topic modeling and initialize contents of topic tree table view
      */
-    private void contructTopicTableView() {
+    @Override
+    public void constructTableView() {
         TreeItem<Topic> root = new RecursiveTreeItem<Topic>(topics, RecursiveTreeObject::getChildren);
         topicTableView.setRoot(root);
     }
-
-    private void initializeCellValues() {
+    
+    @Override
+    public void initializeCellValues() {
         setCellValueTopicNumber();
         setCellValueTopicDistribution();
         setCellValueTopicDetails();
@@ -344,5 +361,32 @@ public class TopicModelingController implements Initializable {
                 NUMBER_OF_THREADS = newValue;
             }
         });
+    }
+
+    @Override
+    public void makeNewView(View target, String title, String url) {
+        Stage newStage = StageFactory.generateStage(title);
+        FXMLLoader loader = new FXMLLoader(getClass().getClassLoader().getResource(url));
+        Parent root = null;
+        try {
+            root = (Parent)loader.load();
+        } catch (IOException e) {
+            System.err.println("Could not load url: " + url);
+            e.printStackTrace();
+            return;
+        }
+        switch(target) {
+            case REQUIREMENT_VIEW:
+                RequirementController requirementController = loader.<RequirementController>getController();
+                requirementController.constructRequirements(SoftwareSystem.FIREFOX, topics);
+                requirementController.constructTableView();
+//                alertSettingsController.setUser(user);
+//                alertSettingsController.initAlertSettings(stock);
+                break;
+            default:
+                return;
+        }
+        newStage.setScene(new Scene(root));
+        newStage.show();
     }
 }
