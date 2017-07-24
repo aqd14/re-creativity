@@ -56,13 +56,18 @@
 			<artifactId>log4j</artifactId>
 			<version>1.2.17</version>
 		</dependency>
-		
-<!-- 		<dependency>
-			<groupId>edu.stanford.nlp</groupId>
-			<artifactId>stanford-pos-tagger</artifactId>
-			<version>3.8.0</version>
-			<scope>system</scope>
-			<systemPath>${project.basedir}/src/main/resources/lib/stanford-postagger-3.8.0.jar</systemPath>
-		</dependency> -->
+
+		<!-- https://mvnrepository.com/artifact/org.apache.lucene/lucene-core -->
+		<dependency>
+			<groupId>org.apache.lucene</groupId>
+			<artifactId>lucene-core</artifactId>
+			<version>4.10.4</version>
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/org.apache.commons/commons-math3 -->
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-math3</artifactId>
+			<version>3.0</version>
+		</dependency>
 	</dependencies>
 </project>
