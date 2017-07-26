@@ -1,5 +1,7 @@
 package org.re.model;
 
+import java.io.Serializable;
+
 import org.re.common.SoftwareSystem;
 import org.re.common.Template;
 
@@ -11,7 +13,11 @@ import com.jfoenix.controls.datamodels.treetable.RecursiveTreeObject;
 //             |      |     |       |       |
 //              Opening    Verb    Noun   Object (Additional from context to make sense for requirements)
 //                       (Already flipped)
-public class Requirement extends RecursiveTreeObject<Requirement> {
+public class Requirement extends RecursiveTreeObject<Requirement> implements Serializable {
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
     // Attributes
     private String id;
     private SoftwareSystem system; // Indicate which oss system the requirement belongs to
@@ -128,8 +134,8 @@ public class Requirement extends RecursiveTreeObject<Requirement> {
     @Override
     public String toString() {
         StringBuilder bd = new StringBuilder(opening.getContent());
-        bd.append(" ").append(verb.getContent()).append(" (").append(verb.getPos()).append(")").
-        append(" ").append(noun.getContent()).append(" (").append(noun.getPos()).append(")").
+        bd.append(" ").append(verb.getContent()).
+        append(" ").append(noun.getContent()).
         append(" ").append(object.getContent());
         return bd.toString();
     }

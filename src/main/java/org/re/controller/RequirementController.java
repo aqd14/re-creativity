@@ -1,5 +1,6 @@
 package org.re.controller;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.URL;
@@ -18,6 +19,7 @@ import org.re.model.Topic;
 import org.re.model.TopicWord;
 import org.re.model.WordPair;
 import org.re.utils.CosineDocumentSimilarity;
+import org.re.utils.SerializationUtils;
 import org.re.utils.Utils;
 
 import com.jfoenix.controls.JFXTreeTableView;
@@ -37,7 +39,11 @@ public class RequirementController implements Initializable, IController{
     // Logger
     final static Logger logger = Logger.getLogger(RequirementController.class);
     
+    // List of FireFox requirements
     private final String FIREFOX_REQUIREMENTS = "requirements/firefox_requirements.txt";
+    // Serialized requirements file
+    private final String SERIALIZED_REQUIREMENTS = "requirements.ser";
+    // Cosine similarity threshold to filter unfamiliar word pair
     private final double COSINE_THRESHOLD = 0.15;
     
     ObservableList<Requirement> requirements = FXCollections.observableArrayList();
@@ -148,6 +154,11 @@ public class RequirementController implements Initializable, IController{
             Requirement r = new Requirement(String.valueOf(++id), wp.getSystem(), wp.getVerb().getWord(), wp.getNoun().getWord());
             requirements.add(r);
         }
+        // Serialize requirements
+        StringBuilder pathBuilder = new StringBuilder();
+        pathBuilder.append(getClass().getClassLoader().getResource("serialization").toString().replace("file:", ""));
+        pathBuilder.append(File.separatorChar).append(SERIALIZED_REQUIREMENTS);
+        SerializationUtils.writeSerializedRequirements(pathBuilder.toString(), requirements);
     }
     
     /**

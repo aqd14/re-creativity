@@ -3,15 +3,21 @@
  */
 package org.re.model;
 
+import java.io.Serializable;
+
 import org.re.common.POS;
 
 /**
  * @author doquocanh-macbook
  *
  */
-public class Word {
+public class Word implements Serializable {
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
     private String content;
-    private POS pos;
+    private transient POS pos;
 
     /**
      * 
