@@ -378,10 +378,14 @@ public class TopicModelingController implements Initializable, IController {
         switch(target) {
             case REQUIREMENT_VIEW:
                 RequirementController requirementController = loader.<RequirementController>getController();
-                requirementController.constructRequirements(SoftwareSystem.FIREFOX, topics);
+//                requirementController.buildWordPairs(SoftwareSystem.FIREFOX, topics);
+                try {
+                    requirementController.toRequirements(SoftwareSystem.FIREFOX, topics);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    return;
+                }
                 requirementController.constructTableView();
-//                alertSettingsController.setUser(user);
-//                alertSettingsController.initAlertSettings(stock);
                 break;
             default:
                 return;

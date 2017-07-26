@@ -3,6 +3,8 @@
  */
 package org.re.model;
 
+import org.re.common.SoftwareSystem;
+
 /**
  * @author doquocanh-macbook
  *
@@ -11,84 +13,89 @@ package org.re.model;
  */
 public class WordPair implements Comparable<WordPair> {
     // Attributes
-    private TopicWord firstPart; // Initially a verb then will become noun
-    private TopicWord secondPart; // Initially a noun then will become verb
-    private boolean isFlipped; // A flag to keep track if the pair has been flipped
-    private int ranking; // Ranks how common the pair is
-
+    private SoftwareSystem system;
+    private TopicWord verb; // Initially a noun before flipping pos
+    private TopicWord noun; // Initially a verb before flipping pos
+    private double cosineSimilarity; // Ranks how similar word pair is to list of requirements
+    
+    public WordPair(SoftwareSystem system, TopicWord verb, TopicWord noun) {
+        this(system, verb, noun, Double.NaN);
+    }
+    
     /**
      * 
      */
-    public WordPair() {
-        // TODO Auto-generated constructor stub
+    public WordPair(SoftwareSystem system, TopicWord verb, TopicWord noun, double cosineSimilarity) {
+        this.setSystem(system);
+        this.verb = verb;
+        this.noun = noun;
+        this.cosineSimilarity = cosineSimilarity;
     }
 
     /**
      * @return the firstPart
      */
-    public TopicWord getFirstPart() {
-        return firstPart;
+    public TopicWord getVerb() {
+        return verb;
     }
 
     /**
      * @param firstPart
      *            the firstPart to set
      */
-    public void setFirstPart(TopicWord firstPart) {
-        this.firstPart = firstPart;
+    public void setVerb(TopicWord firstPart) {
+        this.verb = firstPart;
     }
 
     /**
      * @return the secondPart
      */
-    public TopicWord getSecondPart() {
-        return secondPart;
+    public TopicWord getNoun() {
+        return noun;
     }
 
     /**
      * @param secondPart
      *            the secondPart to set
      */
-    public void setSecondPart(TopicWord secondPart) {
-        this.secondPart = secondPart;
+    public void setNoun(TopicWord secondPart) {
+        this.noun = secondPart;
     }
 
     /**
-     * @return the isFlipped
+     * @return the cosineSimilarity
      */
-    public boolean isFlipped() {
-        return isFlipped;
+    public double getCosineSimilarity() {
+        return cosineSimilarity;
     }
 
     /**
-     * @param isFlipped
-     *            the isFlipped to set
+     * @param cosineSimilarity the cosineSimilarity to set
      */
-    public void setFlipped(boolean isFlipped) {
-        this.isFlipped = isFlipped;
+    public void setCosineSimilarity(double cosineSimilarity) {
+        this.cosineSimilarity = cosineSimilarity;
     }
 
     /**
-     * @return the ranking
+     * @return the system
      */
-    public int getRanking() {
-        return ranking;
+    public SoftwareSystem getSystem() {
+        return system;
     }
 
     /**
-     * @param ranking
-     *            the ranking to set
+     * @param system the system to set
      */
-    public void setRanking(int ranking) {
-        this.ranking = ranking;
+    public void setSystem(SoftwareSystem system) {
+        this.system = system;
     }
 
     @Override
     public int compareTo(WordPair o) {
         // TODO Auto-generated method stub
-        if (this.ranking > o.ranking)
+        if (this.cosineSimilarity > o.cosineSimilarity)
             return 1;
-        if (this.ranking < o.ranking)
+        if (this.cosineSimilarity < o.cosineSimilarity)
             return -1;
         return 0;
     }
