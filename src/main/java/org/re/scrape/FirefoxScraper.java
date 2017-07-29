@@ -16,7 +16,7 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.re.common.SoftwareSystem;
-import org.re.scrape.model.Assigner;
+import org.re.scrape.model.Assignee;
 import org.re.scrape.model.Comment;
 import org.re.scrape.model.Commenter;
 import org.re.scrape.model.Issue;
@@ -70,7 +70,7 @@ public class FirefoxScraper extends BaseScraper {
             Date resolvedDate = df.parse(resolvedDateStr);
             
             // Create new Issue object with scraped data
-            Issue issue = new Issue(id, title, status, importance, new Assigner(assigner), new Reporter(reporter),
+            Issue issue = new Issue(id, title, status, importance, new Assignee(assigner), new Reporter(reporter),
                     createdDate, modifiedDate, resolvedDate);
             product.getIssues().add(issue);
             logger.info("Added issue: " + issue);

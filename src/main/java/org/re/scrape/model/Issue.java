@@ -6,6 +6,7 @@ package org.re.scrape.model;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Set;
 
 /**
  * The class contains any related information need to be scraped from an issue, which includes:
@@ -15,6 +16,9 @@ import java.util.HashMap;
  * <li> Issue's system </li>
  * <li> Issue's status </li>
  * <li> Issue's importance </li>
+ * <li> Assignee </li>
+ * <li> Reporter </li>
+ * <li> Commenters' stats </li>
  * <li> Issue's created date </li>
  * <li> Issue's modified date </li>
  * <li> Issue's resolved date </li>
@@ -37,7 +41,7 @@ public class Issue implements Serializable {
     private Date resolvedDate;      // Resolved date
     
     // Stakeholders
-    private Assigner assigner;
+    private Assignee assignee;
     private Reporter reporter;
     private HashMap<String, Integer> commenterStats; // Map commenter to his number of comments within the issue
 
@@ -48,13 +52,13 @@ public class Issue implements Serializable {
         
     }
     
-    public Issue(int id, String title, String status, String importance, Assigner assigner, Reporter reporter, Date createdDate,
+    public Issue(int id, String title, String status, String importance, Assignee assignee, Reporter reporter, Date createdDate,
             Date modifiedDate, Date resolvedDate) {
         this.id = id;
         this.title = title;
         this.status = status;
         this.importance = importance;
-        this.setAssigner(assigner);
+        this.setAssignee(assignee);
         this.setReporter(reporter);
         this.setCommenterStats(new HashMap<>());
         this.createdDate = createdDate;
@@ -149,17 +153,17 @@ public class Issue implements Serializable {
     }
     
     /**
-     * @return the assigner
+     * @return the assignee
      */
-    public Assigner getAssigner() {
-        return assigner;
+    public Assignee getAssignee() {
+        return assignee;
     }
 
     /**
-     * @param assigner the assigner to set
+     * @param assignee the assigner to set
      */
-    public void setAssigner(Assigner assigner) {
-        this.assigner = assigner;
+    public void setAssignee(Assignee assignee) {
+        this.assignee = assignee;
     }
 
     /**
@@ -189,7 +193,20 @@ public class Issue implements Serializable {
     public void setCommenterStats(HashMap<String, Integer> commenterStats) {
         this.commenterStats = commenterStats;
     }
-
+    
+    public String commentStatsToString() {
+        if (commenterStats == null) {
+            return "";
+        }
+        StringBuilder bd = new StringBuilder();
+        Set<String> usernames = commenterStats.keySet();
+        for (String username : usernames) {
+            int commentCount = commenterStats.get(username);
+            bd.append(username).append(":").append(commentCount).append(";");
+        }
+        return bd.toString();
+    }
+    
     /* (non-Javadoc)
      * @see java.lang.Object#toString()
      */
