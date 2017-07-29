@@ -11,6 +11,7 @@ import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 
 import org.re.model.Requirement;
+import org.re.scrape.model.Product;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -52,5 +53,40 @@ public class SerializationUtils {
             e.printStackTrace();
         }
         return reqs;
+    }
+    
+    /**
+     * Serialize product
+     * 
+     * @param path
+     * @param product
+     */
+    public static void serializeProduct(String path, Product product) {
+        try {
+            ObjectOutputStream objOut = new ObjectOutputStream(new FileOutputStream(path));
+            objOut.writeObject(product);
+            objOut.close();
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+    }
+    
+    /**
+     * Deserialize product
+     * 
+     * @param path
+     * @return
+     */
+    public static Product deserializeProduct(String path) {
+        try {
+            ObjectInputStream objIn = new ObjectInputStream(new FileInputStream(path));
+            Product p = (Product) objIn.readObject();
+            objIn.close();
+            return p;
+        } catch (IOException | ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 }
