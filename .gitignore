@@ -2,3 +2,5 @@ target
 .classpath
 .project
 .settings/*
+
+src/main/resources/log4j.properties
