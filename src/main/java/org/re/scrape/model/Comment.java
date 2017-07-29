@@ -3,11 +3,17 @@
  */
 package org.re.scrape.model;
 
+import java.io.Serializable;
+
 /**
  * @author doquocanh-macbook
  *
  */
-public class Comment {
+public class Comment implements Serializable {
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
     private int issueID;            // Issue where comment belongs to
     private Commenter commenter;    // Who comments
     private String content;         // Comment's content

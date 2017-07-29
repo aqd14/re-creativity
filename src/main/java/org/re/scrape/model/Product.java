@@ -3,6 +3,7 @@
  */
 package org.re.scrape.model;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -12,7 +13,11 @@ import org.re.common.SoftwareSystem;
  * @author doquocanh-macbook
  *
  */
-public class Product {
+public class Product implements Serializable {
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
     // Attribute
     private SoftwareSystem system; // Software system
     private ArrayList<Issue> issues; // List of issues that product possesses

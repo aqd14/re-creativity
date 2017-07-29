@@ -5,6 +5,7 @@ package org.re.scrape.model;
 
 import java.io.Serializable;
 import java.util.Date;
+import java.util.HashMap;
 
 /**
  * The class contains any related information need to be scraped from an issue, which includes:
@@ -34,6 +35,11 @@ public class Issue implements Serializable {
     private Date createdDate;       // Created date
     private Date modifiedDate;      // Latest modified date
     private Date resolvedDate;      // Resolved date
+    
+    // Stakeholders
+    private Assigner assigner;
+    private Reporter reporter;
+    private HashMap<String, Integer> commenterStats; // Map commenter to his number of comments within the issue
 
     /**
      * 
@@ -42,12 +48,15 @@ public class Issue implements Serializable {
         
     }
     
-    public Issue(int id, String title, String status, String importance, Date createdDate,
+    public Issue(int id, String title, String status, String importance, Assigner assigner, Reporter reporter, Date createdDate,
             Date modifiedDate, Date resolvedDate) {
         this.id = id;
         this.title = title;
         this.status = status;
         this.importance = importance;
+        this.setAssigner(assigner);
+        this.setReporter(reporter);
+        this.setCommenterStats(new HashMap<>());
         this.createdDate = createdDate;
         this.modifiedDate = modifiedDate;
         this.resolvedDate = resolvedDate;
@@ -137,6 +146,48 @@ public class Issue implements Serializable {
      */
     public void setResolvedDate(Date resolvedDate) {
         this.resolvedDate = resolvedDate;
+    }
+    
+    /**
+     * @return the assigner
+     */
+    public Assigner getAssigner() {
+        return assigner;
+    }
+
+    /**
+     * @param assigner the assigner to set
+     */
+    public void setAssigner(Assigner assigner) {
+        this.assigner = assigner;
+    }
+
+    /**
+     * @return the reporter
+     */
+    public Reporter getReporter() {
+        return reporter;
+    }
+
+    /**
+     * @param reporter the reporter to set
+     */
+    public void setReporter(Reporter reporter) {
+        this.reporter = reporter;
+    }
+
+    /**
+     * @return the commenterStats
+     */
+    public HashMap<String, Integer> getCommenterStats() {
+        return commenterStats;
+    }
+
+    /**
+     * @param commenterStats the commenterStats to set
+     */
+    public void setCommenterStats(HashMap<String, Integer> commenterStats) {
+        this.commenterStats = commenterStats;
     }
 
     /* (non-Javadoc)

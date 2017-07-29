@@ -10,30 +10,19 @@ import java.util.HashMap;
  * @author doquocanh-macbook
  *
  */
-public class Commenter {
-    private String username;
+public class Commenter extends Stakeholder {
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
     private HashMap<Integer, ArrayList<Comment>> comments; // Mapping from an issue to a list of comments
     
     /**
      * 
      */
-    public Commenter(String username) {
-        this.username = username;
+    public Commenter(String name) {
+        super(name);
         comments = new HashMap<>();
-    }
-
-    /**
-     * @return the username
-     */
-    public String getUsername() {
-        return username;
-    }
-
-    /**
-     * @param username the username to set
-     */
-    public void setUsername(String username) {
-        this.username = username;
     }
 
     /**
@@ -57,7 +46,7 @@ public class Commenter {
     public String toString() {
         StringBuilder builder = new StringBuilder();
         builder.append("Commenter [username=");
-        builder.append(username);
+        builder.append(name);
         builder.append(", comments=");
         builder.append(comments);
         builder.append("]");

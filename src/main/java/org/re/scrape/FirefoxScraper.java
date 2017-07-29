@@ -16,9 +16,11 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.re.common.SoftwareSystem;
+import org.re.scrape.model.Assigner;
 import org.re.scrape.model.Comment;
 import org.re.scrape.model.Commenter;
 import org.re.scrape.model.Issue;
+import org.re.scrape.model.Reporter;
 
 /**
  * @author doquocanh-macbook
@@ -55,6 +57,9 @@ public class FirefoxScraper extends BaseScraper {
             }
             String title = doc.select("#field-value-short_desc").text();
             String importance = doc.select("#field-value-bug_severity").text();
+            // Stakeholders
+            String assigner = doc.select("#field-value-assigned_to .fna").text();
+            String reporter = doc.select("#field-value-reporter .fna").text();
             
             // Date information
             String createdDateStr = doc.select("#field-creation_ts .value .rel-time").attr("title").replace(" PDT", "").replace(" PST", "");
@@ -64,11 +69,13 @@ public class FirefoxScraper extends BaseScraper {
             String resolvedDateStr = doc.select("#c1 .change-time .rel-time").attr("title").replace(" PDT", "").replace(" PST", "");
             Date resolvedDate = df.parse(resolvedDateStr);
             
-         // Create new Issue object with scraped data
-            Issue issue = new Issue(id, title, status, importance, createdDate, modifiedDate, resolvedDate);
+            // Create new Issue object with scraped data
+            Issue issue = new Issue(id, title, status, importance, new Assigner(assigner), new Reporter(reporter),
+                    createdDate, modifiedDate, resolvedDate);
             product.getIssues().add(issue);
             logger.info("Added issue: " + issue);
             HashMap<String, Commenter> commenters = product.getCommenters();
+            HashMap<String, Integer> stats = issue.getCommenterStats();
             // Scrape commenter and associated comments
             // Comment section starts with id contains c[0-9] like c0,c1,c2,etc..
             Elements commentElements = doc.select("div[id~=^c[0-9]+$]");
@@ -93,6 +100,8 @@ public class FirefoxScraper extends BaseScraper {
                 }
                 Comment cm = new Comment(id, ct, content);
                 ct.getComments().get(id).add(cm);
+                // Create commenter stats for each issue
+                stats.put(username, stats.getOrDefault(username, 0) + 1);
             }
             logger.info("------- END SCRAPING ISSUE " + id + " ----------\n");
         } catch (IOException | ParseException e) {
