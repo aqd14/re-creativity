@@ -61,9 +61,9 @@ public class ExporterUtils {
                 newRow.createCell(4).setCellValue(issue.getImportance());               // Importance 
                 newRow.createCell(5).setCellValue(issue.getAssignee().getName());       // Assignee
                 newRow.createCell(6).setCellValue(issue.getReporter().getName());       // Reporter
-                newRow.createCell(7).setCellValue(sdf.format(issue.getCreatedDate()));  // Created Date
-                newRow.createCell(8).setCellValue(sdf.format(issue.getModifiedDate())); // Modified Date
-                newRow.createCell(9).setCellValue(sdf.format(issue.getResolvedDate())); // Resolved Date
+                newRow.createCell(7).setCellValue(issue.getReportedDateStr());  // Created Date
+                newRow.createCell(8).setCellValue(issue.getModifiedDateStr()); // Modified Date
+                newRow.createCell(9).setCellValue(issue.getResolvedDateStr()); // Resolved Date
                 newRow.createCell(10).setCellValue(issue.commentStatsToString());       // Comment Info
             }
             wb.write(fileOut);

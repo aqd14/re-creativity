@@ -40,6 +40,11 @@ public class Issue implements Serializable {
     private Date modifiedDate;      // Latest modified date
     private Date resolvedDate;      // Resolved date
     
+    
+    private String reportedDateStr;
+    private String modifiedDateStr;
+    private String resolvedDateStr;
+    
     // Stakeholders
     private Assignee assignee;
     private Reporter reporter;
@@ -50,6 +55,20 @@ public class Issue implements Serializable {
      */
     public Issue() {
         
+    }
+    
+    public Issue(int id, String title, String status, String importance, Assignee assignee, Reporter reporter, String createdDate,
+            String modifiedDate, String resolvedDate) {
+        this.id = id;
+        this.title = title;
+        this.status = status;
+        this.importance = importance;
+        this.setAssignee(assignee);
+        this.setReporter(reporter);
+        this.setCommenterStats(new HashMap<>());
+        this.setReportedDateStr(createdDate);
+        this.setModifiedDateStr(modifiedDate);
+        this.setResolvedDateStr(resolvedDate);
     }
     
     public Issue(int id, String title, String status, String importance, Assignee assignee, Reporter reporter, Date createdDate,
@@ -207,6 +226,48 @@ public class Issue implements Serializable {
         return bd.toString();
     }
     
+    /**
+     * @return the reportedDateStr
+     */
+    public String getReportedDateStr() {
+        return reportedDateStr;
+    }
+
+    /**
+     * @param reportedDateStr the reportedDateStr to set
+     */
+    public void setReportedDateStr(String reportedDateStr) {
+        this.reportedDateStr = reportedDateStr;
+    }
+
+    /**
+     * @return the modifiedDateStr
+     */
+    public String getModifiedDateStr() {
+        return modifiedDateStr;
+    }
+
+    /**
+     * @param modifiedDateStr the modifiedDateStr to set
+     */
+    public void setModifiedDateStr(String modifiedDateStr) {
+        this.modifiedDateStr = modifiedDateStr;
+    }
+
+    /**
+     * @return the resolvedDateStr
+     */
+    public String getResolvedDateStr() {
+        return resolvedDateStr;
+    }
+
+    /**
+     * @param resolvedDateStr the resolvedDateStr to set
+     */
+    public void setResolvedDateStr(String resolvedDateStr) {
+        this.resolvedDateStr = resolvedDateStr;
+    }
+
     /* (non-Javadoc)
      * @see java.lang.Object#toString()
      */
@@ -221,12 +282,12 @@ public class Issue implements Serializable {
         builder.append(status);
         builder.append(", importance=");
         builder.append(importance);
-        builder.append(", createdDate=");
-        builder.append(createdDate);
+        builder.append(", reportedDate=");
+        builder.append(reportedDateStr);
         builder.append(", modifiedDate=");
-        builder.append(modifiedDate);
+        builder.append(modifiedDateStr);
         builder.append(", resolvedDate=");
-        builder.append(resolvedDate);
+        builder.append(resolvedDateStr);
         builder.append("]");
         return builder.toString();
     }

@@ -4,10 +4,8 @@
 package org.re.scrape;
 
 import java.io.IOException;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 
 import org.apache.log4j.Logger;
@@ -48,36 +46,45 @@ public class MylynScraper extends BaseScraper {
             int id = Integer.parseInt(url.replace(MYLYN_URL_PREFIX, ""));
             logger.info("------- START SCRAPING ISSUE " + id + " ----------\n");
             if (isInvalidStatus(status)) {
-                logger.debug("Issue " + id + " is invalid: " + status + "\n");
+                logger.info("Issue " + id + " is invalid: " + status + "\n");
                 logger.info("------- END SCRAPING ISSUE " + id + " ----------\n");
                 return;
             }
             String title = doc.select("#short_desc_nonedit_display").text();
             Elements tableData = doc.select("#bz_show_bug_column_1").select("tr");
-            String importance = tableData.get(8).select("td").text();
+            String importance = tableData.get(8).select("td").text().replace("(vote)", "");
             
             // Stakeholders
             String assigner = tableData.get(10).select(".fn").text();
             String reporter = doc.select("#bz_show_bug_column_2 .fn").text();
             
             // Date information
-            String createdDateStr = doc.select("#bz_show_bug_column_2").select("tr").get(0).select("td").text();
-            // Remove unnecessary text: 2008-11-26 15:42 EST by David Green
-            int removeIx = createdDateStr.indexOf("EST") - 1;
-            createdDateStr = createdDateStr.substring(0, removeIx);
-            Date createdDate = df.parse(createdDateStr);
+//            String createdDateStr = doc.select("#bz_show_bug_column_2").select("tr").get(0).select("td").text();
+//            // Remove unnecessary text: 2008-11-26 15:42 EST by David Green
+//            int removeIx = createdDateStr.indexOf("EST") - 1;
+//            createdDateStr = createdDateStr.substring(0, removeIx);
+//            Date createdDate = df.parse(createdDateStr);
+//            
+//            String modifiedDateStr = doc.select("#bz_show_bug_column_2").select("tr").get(1).select("td").text();
+//            removeIx = modifiedDateStr.indexOf("EST") - 1;
+//            modifiedDateStr = modifiedDateStr.substring(0, removeIx);
+//            Date modifiedDate = df.parse(modifiedDateStr);
+//            
+//            // Couldn't find resolved data on the website.
+//            Date resolvedDate = modifiedDate; //df.parse(resolvedDateStr);
             
-            String modifiedDateStr = doc.select("#bz_show_bug_column_2").select("tr").get(1).select("td").text();
-            removeIx = modifiedDateStr.indexOf("EST") - 1;
-            modifiedDateStr = modifiedDateStr.substring(0, removeIx);
-            Date modifiedDate = df.parse(modifiedDateStr);
+            // Date information
+            String reportedDateStr = doc.select("#bz_show_bug_column_2").select("tr").get(0).select("td").text().replace(" by David Green", "");
+            // Remove unnecessary text: 2008-11-26 15:42 EST by David Green
+            
+            String modifiedDateStr = doc.select("#bz_show_bug_column_2").select("tr").get(1).select("td").text().replace("(History)", "");
             
             // Couldn't find resolved data on the website.
-            Date resolvedDate = modifiedDate; //df.parse(resolvedDateStr);
+            String resolvedDateStr = modifiedDateStr; //df.parse(resolvedDateStr);
             
             // Create new Issue object with scraped data
             Issue issue = new Issue(id, title, status, importance, new Assignee(assigner), new Reporter(reporter),
-                    createdDate, modifiedDate, resolvedDate);
+                    reportedDateStr, modifiedDateStr, resolvedDateStr);
             product.getIssues().add(issue);
             logger.info("Added issue: " + issue);
             HashMap<String, Commenter> commenters = product.getCommenters();
@@ -94,15 +101,15 @@ public class MylynScraper extends BaseScraper {
                     ct = new Commenter(username);
                     ct.getComments().put(id, new ArrayList<Comment>());
                     commenters.put(username, ct);
-                    logger.info("Added new commenter: " + username);
+                    logger.debug("Added new commenter: " + username);
                 } else if (ct.getComments().get(id) == null){
                     // If the user also comments in other issue,
                     // Create new list of Comments associates with that issue
                     ct.getComments().put(id, new ArrayList<Comment>());
-                    logger.info("Existing commenter in other issue: " + username + " - " + id);
+                    logger.debug("Existing commenter in other issue: " + username + " - " + id);
                 } else {
                     // Continue commenting
-                    logger.info("Existing commenter in the same issue: " + username + " - " + id);
+                    logger.debug("Existing commenter in the same issue: " + username + " - " + id);
                 }
                 Comment cm = new Comment(id, ct, content);
                 ct.getComments().get(id).add(cm);
@@ -110,7 +117,7 @@ public class MylynScraper extends BaseScraper {
                 stats.put(username, stats.getOrDefault(username, 0) + 1);
             }
             logger.info("------- END SCRAPING ISSUE " + id + " ----------\n");     
-        } catch (IOException | ParseException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }

@@ -4,10 +4,8 @@
 package org.re.scrape;
 
 import java.io.IOException;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 
 import org.apache.log4j.Logger;
@@ -51,7 +49,7 @@ public class FirefoxScraper extends BaseScraper {
             int id = Integer.parseInt(url.replace(FIREFOX_URL_PREFIX, ""));
             logger.info("------- START SCRAPING ISSUE " + id + " ----------\n");
             if (isInvalidStatus(status)) {
-                logger.debug("Issue " + id + " is invalid: " + status + "\n");
+                logger.info("Issue " + id + " is invalid: " + status + "\n");
                 logger.info("------- END SCRAPING ISSUE " + id + " ----------\n");
                 return;
             }
@@ -62,16 +60,16 @@ public class FirefoxScraper extends BaseScraper {
             String reporter = doc.select("#field-value-reporter .fna").text();
             
             // Date information
-            String createdDateStr = doc.select("#field-creation_ts .value .rel-time").attr("title").replace(" PDT", "").replace(" PST", "");
-            Date createdDate = df.parse(createdDateStr);
+            String reportedDateStr = doc.select("#field-creation_ts .value .rel-time").attr("title").replace(" PDT", "").replace(" PST", "");
+//            Date createdDate = df.parse(createdDateStr);
             String modifiedDateStr = doc.select("#field-delta_ts .value .rel-time").attr("title").replace(" PDT", "").replace(" PST", "");
-            Date modifiedDate = df.parse(modifiedDateStr);
+//            Date modifiedDate = df.parse(modifiedDateStr);
             String resolvedDateStr = doc.select("#c1 .change-time .rel-time").attr("title").replace(" PDT", "").replace(" PST", "");
-            Date resolvedDate = df.parse(resolvedDateStr);
+//            Date resolvedDate = df.parse(resolvedDateStr);
             
             // Create new Issue object with scraped data
             Issue issue = new Issue(id, title, status, importance, new Assignee(assigner), new Reporter(reporter),
-                    createdDate, modifiedDate, resolvedDate);
+                    reportedDateStr, modifiedDateStr, resolvedDateStr);
             product.getIssues().add(issue);
             logger.info("Added issue: " + issue);
             HashMap<String, Commenter> commenters = product.getCommenters();
@@ -88,15 +86,15 @@ public class FirefoxScraper extends BaseScraper {
                     ct = new Commenter(username);
                     ct.getComments().put(id, new ArrayList<Comment>());
                     commenters.put(username, ct);
-                    logger.info("Added new commenter: " + username);
+                    logger.debug("Added new commenter: " + username);
                 } else if (ct.getComments().get(id) == null){
                     // If the user also comments in other issue,
                     // Create new list of Comments associates with that issue
                     ct.getComments().put(id, new ArrayList<Comment>());
-                    logger.info("Existing commenter in other issue: " + username + " - " + id);
+                    logger.debug("Existing commenter in other issue: " + username + " - " + id);
                 } else {
                     // Continue commenting
-                    logger.info("Existing commenter in the same issue: " + username + " - " + id);
+                    logger.debug("Existing commenter in the same issue: " + username + " - " + id);
                 }
                 Comment cm = new Comment(id, ct, content);
                 ct.getComments().get(id).add(cm);
@@ -104,7 +102,7 @@ public class FirefoxScraper extends BaseScraper {
                 stats.put(username, stats.getOrDefault(username, 0) + 1);
             }
             logger.info("------- END SCRAPING ISSUE " + id + " ----------\n");
-        } catch (IOException | ParseException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
