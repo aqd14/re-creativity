@@ -3,7 +3,6 @@
  */
 package org.re.scrape;
 
-import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;

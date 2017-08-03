@@ -5,7 +5,6 @@ package org.re.utils;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 
 import org.apache.poi.hssf.usermodel.HSSFRow;
@@ -49,7 +48,7 @@ public class ExporterUtils {
         row.createCell(10).setCellValue("Comment Info");
 
         try (FileOutputStream fileOut = new FileOutputStream(file)) {
-            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm");
+//            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm");
             // Write Issue details to each row in excel file
             // Each issue is associated with a row
             for (Issue issue : issues) {
