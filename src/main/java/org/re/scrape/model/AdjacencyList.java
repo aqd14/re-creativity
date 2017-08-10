@@ -7,8 +7,10 @@ import java.util.Iterator;
 import java.util.NoSuchElementException;
 
 /**
- * @author doquocanh-macbook
- *
+ * An implementation of linked list that can be used to represents for adjacency
+ * list in the graph.
+ * 
+ * @author Anh Quoc Do
  */
 public class AdjacencyList<E> implements Iterable<E> {
     private Node<E> first;
@@ -39,6 +41,24 @@ public class AdjacencyList<E> implements Iterable<E> {
         first.item = item;
         first.next = oldFirst;
         size++;
+    }
+    
+    /**
+     * Find item in the list.
+     * @param item
+     * @return {@code null} if not found
+     */
+    public E find(E item) {
+        E found = null;
+        Node<E> temp = first;
+        while (temp != null) {
+            if (item.equals(temp.item)) {
+                found = temp.item;
+                break;
+            }
+            temp = temp.next;
+        }
+        return found;
     }
     
     private static class Node<E> {
