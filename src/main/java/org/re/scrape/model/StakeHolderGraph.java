@@ -29,7 +29,7 @@ public class StakeHolderGraph {
     private final String EDGES_DELIMITER = "\\ / ";
     
     /**
-     * File format: A/B:5/C:3/D:6. That means there are 3 edges connects with
+     * File format: A / B:5 / C:3 / D:6. That means there are 3 edges communicate with
      * stakeholder A, which are B, C, D with weights of 5, 3, 6 respectively
      * @throws FileNotFoundException 
      */
@@ -86,13 +86,14 @@ public class StakeHolderGraph {
         while (scanner.hasNextLine()) {
             String[] stakeholders = scanner.nextLine().split(EDGES_DELIMITER);
             // Source vertex
-            String reporter = stakeholders[0];
-            int u = maps.get(reporter);
+            String source = stakeholders[0];
+            int u = maps.get(source);
             for (int i = 1; i < stakeholders.length; i++) {
                 // Each string contain destination vertex and corresponding weight
-                String[] associate = stakeholders[i].split(":");
-                int v = maps.get(associate[0]);
-                int weight = Integer.parseInt(associate[1]);
+                int separatorIndex = stakeholders[i].lastIndexOf(":");
+                String name = stakeholders[i].substring(0, separatorIndex);
+                int v = maps.get(name);
+                int weight = Integer.parseInt(stakeholders[i].substring(separatorIndex+1, stakeholders[i].length()));
                 g.addEdge(new Edge(u, v, weight));
             }
         }
@@ -103,12 +104,13 @@ public class StakeHolderGraph {
      * @param args
      */
     public static void main(String[] args) {
-        String delimiter = "\\ / "; //"\\ / |\\:\\d+ / |\\:\\d+";
-        String[] a = "Wayne Rooney / asldjk234:5 / aslj 234lj:3 / alksj32:6".split(delimiter);
-        for (String s : a) {
-            System.out.println(s);
+        try {
+            StakeHolderGraph shGraph = new StakeHolderGraph("FIREFOX-communication.txt");
+            System.out.println(shGraph.G());
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
         }
-
+        
     }
 
 }

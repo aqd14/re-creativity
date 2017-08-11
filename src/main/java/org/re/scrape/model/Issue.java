@@ -218,10 +218,59 @@ public class Issue implements Serializable {
             return "";
         }
         StringBuilder bd = new StringBuilder();
-        Set<String> usernames = commenterStats.keySet();
-        for (String username : usernames) {
-            int commentCount = commenterStats.get(username);
-            bd.append(username).append(":").append(commentCount).append(";");
+        // Get list of stakeholders who made comments in the current issue
+        Set<String> stakeholders = commenterStats.keySet();
+        for (String name : stakeholders) {
+            int commentCount = commenterStats.get(name);
+            bd.append(name).append(":").append(commentCount).append(";");
+        }
+        return bd.toString();
+    }
+    
+    /**
+     * Convert comments stats to a specific format that represents for the
+     * communication between a reporter and other developers.
+     * 
+     * Format: A / B:5 / C:3 / D:6 in which A is a stakefolder and others are
+     * developers who have made interaction with A on the reported issue. The
+     * associated digits are the total number of communication made between
+     * reporter and developers.
+     * 
+     * We define X and Y have communication if one of the followings occurred:
+     * <li>X is the proposer of T or has posted a comment or artifact about T
+     * that is read by Y</li>
+     * <li>Y is the proposer of T or has posted a comment or artifact about T
+     * that is read by X</li>
+     * 
+     * Each reported issue, comment or artifact is considered a communication
+     * (1) and will be added up to the total weight
+     * 
+     * @return
+     */
+    public String toGraphEdges() {
+        if (commenterStats == null) {
+            return "";
+        }
+        StringBuilder bd = new StringBuilder();
+        Set<String> shSet = commenterStats.keySet();
+        String[] stakeholders = shSet.toArray(new String[shSet.size()]);
+        // Calculate communication between all pairs of stakeholders
+        for (int i = 0; i < stakeholders.length - 1; i++) {
+            int count1 = commenterStats.get(stakeholders[i]);
+            bd.append(stakeholders[i]).append(" / ");
+            for (int j = i+1; j < stakeholders.length; j++) {
+                int count2 = commenterStats.get(stakeholders[j]);
+                int numComs = count1 + count2; // Number of communication between two stakeholders
+                // Add 1 communication if either is the reporter
+                if (stakeholders[i].equals(reporter.name) || stakeholders[j].equals(reporter.name)) {
+                    numComs++;
+                }
+                bd.append(stakeholders[j]).append(":").append(numComs);
+                if (j != stakeholders.length - 1) {
+                    bd.append(" / ");
+                }
+            }
+            bd.append("\n");
         }
         return bd.toString();
     }

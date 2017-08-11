@@ -3,8 +3,11 @@
  */
 package org.re.utils;
 
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 
 import org.apache.poi.hssf.usermodel.HSSFRow;
@@ -19,7 +22,9 @@ import org.re.scrape.model.Product;
  *
  */
 public class ExporterUtils {
-
+    /*
+     * Write scaped data to excel file
+     */
     public static boolean toExcel(String file, Product product) {
         // pre-condition check
         if (product == null) {
@@ -73,6 +78,19 @@ public class ExporterUtils {
             e.printStackTrace();
         }
         return false;
+    }
+    
+    public static void toText(String file, Product product) {
+        ArrayList<Issue> issues = product.getIssues();
+        try {
+            PrintWriter writer = new PrintWriter(file, "UTF-8");
+            for (Issue issue : issues) {
+                writer.println(issue.toGraphEdges());
+            }
+            writer.close();
+        } catch (FileNotFoundException | UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
     }
 
 }
