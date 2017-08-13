@@ -1,16 +1,17 @@
-/**
- * 
- */
 package org.re.scrape.model;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Scanner;
 
+import org.re.utils.cluster.Cluster;
+import org.re.utils.cluster.KMedoids;
+
 /**
  * String-represented graph, which allows mapping from graph with indices
- * ({@link Graph}) to String representation of vertices. Each vertex is a
+ * ({@link AdjacencyListGraph}) to String representation of vertices. Each vertex is a
  * stakeholder in OSS project and edge's weight is number of communication
  * between two stakeholders.
  * 
@@ -22,8 +23,8 @@ public class StakeHolderGraph {
     private HashMap<String, Integer> maps;
     // Index -> String
     private String[] stakeholders;
-    // Graph
-    private Graph g;
+    // AdjacencyListGraph
+    private AdjacencyMatrixGraph g;
     
     private final String STAKEHOLDERS_DELIMITER = "\\ / |\\:\\d+ / |\\:\\d+";
     private final String EDGES_DELIMITER = "\\ / ";
@@ -73,7 +74,7 @@ public class StakeHolderGraph {
         return stakeholders[v];
     }
     
-    public Graph G() {
+    public AdjacencyMatrixGraph G() {
         return g;
     }
     
@@ -81,7 +82,7 @@ public class StakeHolderGraph {
      * Initialize graph with input reading from file
      */
     private void initGraph(String file) throws FileNotFoundException {
-        g = new Graph(maps.size());
+        g = new AdjacencyMatrixGraph(maps.size());
         Scanner scanner = new Scanner(new File(file));
         while (scanner.hasNextLine()) {
             String[] stakeholders = scanner.nextLine().split(EDGES_DELIMITER);
@@ -107,10 +108,12 @@ public class StakeHolderGraph {
         try {
             StakeHolderGraph shGraph = new StakeHolderGraph("FIREFOX-communication.txt");
             System.out.println(shGraph.G());
+            KMedoids<AdjacencyMatrixGraph> kmedoids = new KMedoids<>(3, 10);
+            ArrayList<Cluster<Integer>> clusters = kmedoids.cluster((AdjacencyMatrixGraph)shGraph.G());
+            for (Cluster<Integer> cluster : clusters)
+                System.out.println(cluster);
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
-        
     }
-
 }

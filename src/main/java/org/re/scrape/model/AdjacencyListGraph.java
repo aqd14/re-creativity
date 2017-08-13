@@ -14,7 +14,7 @@ import java.io.InputStream;
  * </p>
  * @author Anh Quoc Do
  */
-public class Graph {
+public class AdjacencyListGraph extends BaseGraph {
     // Use adjacency list to represent graph
     private int V;  // Number of vertices
     private int E;  // Number of edges
@@ -24,7 +24,7 @@ public class Graph {
      * Create a V-vertex graph without edges
      */
     @SuppressWarnings("unchecked")
-    public Graph(int V) {
+    public AdjacencyListGraph(int V) {
         if (V < 0) {
             throw new IllegalArgumentException("The initialized number of vertex should be greater than 0!");
         }
@@ -40,7 +40,7 @@ public class Graph {
      * Create a graph from an input stream
      * @param in
      */
-    public Graph(InputStream in) {
+    public AdjacencyListGraph(InputStream in) {
         
     }
     
@@ -62,6 +62,7 @@ public class Graph {
      * Add new edge to graph
      * @param e edge to be added
      */
+    @Override
     public void addEdge(Edge e) {
         int u = e.either();
         int v = e.other(u);
@@ -124,7 +125,7 @@ public class Graph {
     }
     
     public static void main(String[] args) {
-        Graph g = new Graph(2);
+        AdjacencyListGraph g = new AdjacencyListGraph(2);
         Edge e1 = new Edge(0,1, 10);
         Edge e2 = new Edge(1,0, 5);
         g.addEdge(e1);

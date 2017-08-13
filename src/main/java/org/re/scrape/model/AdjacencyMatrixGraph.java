@@ -7,7 +7,7 @@ package org.re.scrape.model;
  * @author doquocanh-macbook
  *
  */
-public class AdjacencyMatrixGraph {
+public class AdjacencyMatrixGraph extends BaseGraph {
     private int[][] edges; // adjacency matrix
     private int V;
     private int E;
@@ -19,6 +19,7 @@ public class AdjacencyMatrixGraph {
         edges = new int[V][V];
     }
     
+    @Override
     public void addEdge(Edge e) {
         int u = e.either();
         int v = e.other(u);
@@ -41,8 +42,9 @@ public class AdjacencyMatrixGraph {
     public String toString() {
         StringBuilder bd = new StringBuilder();
         for (int row = 0; row < V; row++) {
-            for (int col = 0; col < V; col++) {
-                bd.append(edges[row][col]).append(" ");
+            bd.append(edges[row][0]);
+            for (int col = 1; col < V; col++) {
+                bd.append(" ").append(edges[row][col]);
             }
             bd.append("\n");
         }
