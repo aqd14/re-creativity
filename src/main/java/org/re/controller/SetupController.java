@@ -13,7 +13,6 @@ import org.re.scrape.FirefoxScraper;
 import org.re.scrape.MylynScraper;
 import org.re.utils.AlertFactory;
 import org.re.utils.ExporterUtils;
-import org.re.utils.StageFactory;
 
 import com.jfoenix.controls.JFXButton;
 import com.jfoenix.controls.JFXComboBox;
@@ -31,6 +30,7 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
+import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 
 /**
@@ -39,8 +39,9 @@ import javafx.stage.Stage;
  * @author Anh Quoc Do
  *
  */
-public class SetupController extends BaseController implements Initializable, IController {
+public class SetupController extends BaseController implements Initializable {
     // Attributes
+    @FXML private StackPane mainSP;
     @FXML private JFXComboBox<String> systemSelectionCB;    // Selected system to generate requirements
     @FXML private JFXTextField fromId;                      // Starting issue id to start scraping
     @FXML private JFXTextField toId;                        // Ending issue id
@@ -88,12 +89,16 @@ public class SetupController extends BaseController implements Initializable, IC
         fromId.textProperty().addListener(acceptNumericOnly(fromId));
         toId.textProperty().addListener(acceptNumericOnly(toId));
     }
-
-    @Override
-    public void makeNewView(View target, String title, String url) {
-        Stage newStage = StageFactory.generateStage(title);
+    
+    /**
+     * Switch to other view. Keep the same scene, only load new view
+     * 
+     * @param target
+     * @param title
+     * @param url
+     */
+    public void switchView(View target, String title, String url) {
         FXMLLoader loader = new FXMLLoader(getClass().getClassLoader().getResource(url));
-        
         BaseScraper scraper;
         String graphInfo;
         switch (system) {
@@ -138,8 +143,10 @@ public class SetupController extends BaseController implements Initializable, IC
                 throw new IllegalArgumentException("View should be either Topic or Requirement!");
         }
         // Show view
-        newStage.setScene(new Scene(root));
-        newStage.show();
+        Stage curStage = (Stage) mainSP.getScene().getWindow();
+        curStage.setScene(new Scene(root));
+        curStage.setTitle(title);
+        curStage.show();
     }
 
     /*
@@ -148,7 +155,7 @@ public class SetupController extends BaseController implements Initializable, IC
     @FXML
     private void skipSetup(ActionEvent e) {
         // Load previously generated requirements
-        makeNewView(View.REQUIREMENT_VIEW, "", REQUIREMENT_VIEW);
+        switchView(View.REQUIREMENT_VIEW, "", REQUIREMENT_VIEW);
     }
     
     /*
@@ -160,7 +167,7 @@ public class SetupController extends BaseController implements Initializable, IC
     private void confirmSetup(ActionEvent e) {
         // Scrape data and extract new requirements
         if (verifyInputId()) {
-            makeNewView(View.TOPIC_VIEW, "Topic Modeling", TOPIC_MODELING_VIEW);
+            switchView(View.TOPIC_VIEW, "Topic Modeling", TOPIC_MODELING_VIEW);
         }
     }
     

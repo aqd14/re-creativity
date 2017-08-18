@@ -10,7 +10,7 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<StackPane prefHeight="278.0" prefWidth="274.0" stylesheets="@../css/application.css" xmlns="http://javafx.com/javafx/8.0.111" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.re.controller.SetupController">
+<StackPane fx:id="mainSP" prefHeight="278.0" prefWidth="274.0" stylesheets="@../css/application.css" xmlns="http://javafx.com/javafx/8.0.111" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.re.controller.SetupController">
    <children>
       <VBox prefHeight="200.0" prefWidth="277.0">
          <children>
