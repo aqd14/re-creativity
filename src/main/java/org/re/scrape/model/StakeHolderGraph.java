@@ -3,9 +3,10 @@ package org.re.scrape.model;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Scanner;
 
+import org.apache.log4j.Logger;
 import org.re.utils.cluster.Cluster;
 import org.re.utils.cluster.KMedoids;
 
@@ -20,11 +21,13 @@ import org.re.utils.cluster.KMedoids;
  */
 public class StakeHolderGraph {
     // String -> Index
-    private HashMap<String, Integer> maps;
+    private LinkedHashMap<String, Integer> maps;
     // Index -> String
     private String[] stakeholders;
     // AdjacencyListGraph
     private AdjacencyMatrixGraph g;
+    
+    static final Logger logger = Logger.getLogger(StakeHolderGraph.class);
     
     private final String STAKEHOLDERS_DELIMITER = "\\ / |\\:\\d+ / |\\:\\d+";
     private final String EDGES_DELIMITER = "\\ / ";
@@ -35,12 +38,17 @@ public class StakeHolderGraph {
      * @throws FileNotFoundException 
      */
     public StakeHolderGraph(String file) throws FileNotFoundException {
-        maps = new HashMap<>();
+        maps = new LinkedHashMap<>();
         Scanner scanner = new Scanner(new File(file));
+        
+        String[] temp;
         while (scanner.hasNextLine()) {
-            String[] stakeholders = scanner.nextLine().split(STAKEHOLDERS_DELIMITER);
-            for (String sh : stakeholders) {
-                maps.putIfAbsent(sh, maps.size());
+            temp = scanner.nextLine().split(STAKEHOLDERS_DELIMITER);
+            for (String sh : temp) {
+                if (!maps.containsKey(sh)) {
+                    maps.put(sh, maps.size());
+                    logger.info("Put stakeholder: " + sh + " at position: " + maps.size());
+                }
             }
         }
         scanner.close();
@@ -84,17 +92,21 @@ public class StakeHolderGraph {
     private void initGraph(String file) throws FileNotFoundException {
         g = new AdjacencyMatrixGraph(maps.size());
         Scanner scanner = new Scanner(new File(file));
+        
+        String[] stakeholders;
+        String source, name;
+        int u, v, separatorIndex, weight;
         while (scanner.hasNextLine()) {
-            String[] stakeholders = scanner.nextLine().split(EDGES_DELIMITER);
+            stakeholders = scanner.nextLine().split(EDGES_DELIMITER);
             // Source vertex
-            String source = stakeholders[0];
-            int u = maps.get(source);
+            source = stakeholders[0];
+            u = maps.get(source);
             for (int i = 1; i < stakeholders.length; i++) {
                 // Each string contain destination vertex and corresponding weight
-                int separatorIndex = stakeholders[i].lastIndexOf(":");
-                String name = stakeholders[i].substring(0, separatorIndex);
-                int v = maps.get(name);
-                int weight = Integer.parseInt(stakeholders[i].substring(separatorIndex+1, stakeholders[i].length()));
+                separatorIndex = stakeholders[i].lastIndexOf(":");
+                name = stakeholders[i].substring(0, separatorIndex);
+                v = maps.get(name);
+                weight = Integer.parseInt(stakeholders[i].substring(separatorIndex+1, stakeholders[i].length()));
                 g.addEdge(new Edge(u, v, weight));
             }
         }

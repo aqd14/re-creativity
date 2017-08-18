@@ -1,25 +1,24 @@
 package org.re.controller;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.ResourceBundle;
-import java.util.Scanner;
 import java.util.function.Predicate;
 
 import org.apache.log4j.Logger;
+import org.re.common.Message;
 import org.re.common.SoftwareSystem;
-import org.re.common.View;
 import org.re.model.Requirement;
 import org.re.model.Topic;
 import org.re.model.TopicWord;
 import org.re.model.WordPair;
+import org.re.utils.AlertFactory;
 import org.re.utils.CosineDocumentSimilarity;
-import org.re.utils.SerializationUtils;
+import org.re.utils.ExporterUtils;
 import org.re.utils.Utils;
 
 import com.jfoenix.controls.JFXTreeTableView;
@@ -31,18 +30,16 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeTableColumn;
 
-public class RequirementController implements Initializable, IController{
+public class RequirementController extends BaseController implements Initializable, ITable{
     
     // Logger
     final static Logger logger = Logger.getLogger(RequirementController.class);
     
-    // List of FireFox requirements
-    private final String FIREFOX_REQUIREMENTS = "requirements/firefox_requirements.txt";
-    // Serialized requirements file
-    private final String SERIALIZED_REQUIREMENTS = "requirements.ser";
     // Cosine similarity threshold to filter unfamiliar word pair
     private final double COSINE_THRESHOLD = 0.15;
     
@@ -85,23 +82,78 @@ public class RequirementController implements Initializable, IController{
         }
     }
     
+    
     /**
-     * Iterate through the word list to select the pair of most dominant nouns and verbs
-     * @param sys
-     * @param wordList1
-     * @param wordList2
+     * Convert from set of most unfamiliar word pairs to corresponding requirements
+     * 
+     * @param system
+     * @param topics
+     * @throws IOException 
      */
-    private HashSet<WordPair> exploreTopicWords(SoftwareSystem sys, ArrayList<TopicWord> wordList1, ArrayList<TopicWord> wordList2) {
-        HashSet<WordPair> wps = new HashSet<>();
-        for (TopicWord tw1 : wordList1) {
-            for (TopicWord tw2 : wordList2) {
-                WordPair wp = makeWordPair(sys, tw1, tw2);
-                if (wp != null) {
-                    wps.add(wp);
-                }
-            }
+    public void toRequirements(SoftwareSystem system, ObservableList<Topic> topics) throws IOException {
+        // Build flipping noun-verb word pairs from topics list
+        buildWordPairs(system, topics);
+        // Calculate cosine similarity for each word pair
+        calculateCosineSimilarity(system);
+        // Filter out those word pairs with cosine <= 0.15*highest_cosine
+        // This means that those pairs are the most unfamiliar ones with existing requirements
+        removeIfGreaterOrEqual(COSINE_THRESHOLD*getHighestCosine());
+        // Now, ready to generate creative requirements from most unfamiliar word pairs
+        for (WordPair wp : wordPairs) {
+            Requirement r = new Requirement(String.valueOf(++id), wp.getSystem(), wp.getVerb().getWord(), wp.getNoun().getWord());
+            requirements.add(r);
         }
-        return wps;
+        // Serialize requirements
+        String path;
+        switch (system) {
+            case FIREFOX:
+                path = ExporterUtils.FIREFOX_REQUIREMENTS_SERIALIZATION;
+                break;
+            case MYLYN:
+                path = ExporterUtils.MYLYN_REQUIREMENTS_SERIALIZATION;
+                break;
+            default:
+                throw new IllegalArgumentException("Invalid system: " + system);
+        }
+        // Serialize generated requirements
+        ExporterUtils.writeSerializedRequirements(path, requirements); 
+    }
+    
+    /**
+     * Load previously generated requirements. Usually, this methods will
+     * deserialize objects in the directory determined by software system.
+     * 
+     * @param system selected software system
+     */
+    public void loadRequirements(SoftwareSystem system) {
+        File f;
+        switch (system) {
+            case FIREFOX:
+                f = new File(ExporterUtils.FIREFOX_REQUIREMENTS_SERIALIZATION);
+                break;
+            case MYLYN:
+                f = new File(ExporterUtils.MYLYN_REQUIREMENTS_SERIALIZATION);
+                break;
+            default:
+                throw new IllegalArgumentException("Invalid system: " + system);
+        }
+        
+        // Check if the serialized requirements file already exists
+        if (!f.exists()) {
+            Alert alert = AlertFactory.generateAlert(AlertType.INFORMATION, Message.NO_REQUIREMENTS_AVAILABLE);
+            alert.show();
+            return;
+        }
+        
+        requirements = ExporterUtils.readSerializedRequirements(f);
+        // Something wrong! Can't read serialized requirement objects
+        if (requirements == null) {
+            logger.error("Failed loading serialized requirements!");
+            Alert alert = AlertFactory.generateAlert(AlertType.ERROR, Message.CANT_LOAD_REQUIREMENTS);
+            alert.show();
+        }
+        // Construct table view with current list of requirements
+        constructTableView();
     }
     
     /**
@@ -135,39 +187,24 @@ public class RequirementController implements Initializable, IController{
     }
     
     /**
-     * Convert from set of most unfamiliar word pairs to corresponding requirements
-     * 
-     * @param system
-     * @param topics
-     * @throws IOException 
-     */
-    public void toRequirements(SoftwareSystem system, ObservableList<Topic> topics) throws IOException {
-        // Build flipping noun-verb word pairs from topics list
-        buildWordPairs(system, topics);
-        // Calculate cosine similarity for each word pair
-        calculateCosineSimilarity();
-        // Filter out those word pairs with cosine <= 0.15*highest_cosine
-        // This means that those pairs are the most unfamiliar ones with existing requirements
-        removeIfGreaterOrEqual(COSINE_THRESHOLD*getHighestCosine());
-        // Now, ready to generate creative requirements from most unfamiliar word pairs
-        for (WordPair wp : wordPairs) {
-            Requirement r = new Requirement(String.valueOf(++id), wp.getSystem(), wp.getVerb().getWord(), wp.getNoun().getWord());
-            requirements.add(r);
-        }
-        // Serialize requirements
-        StringBuilder pathBuilder = new StringBuilder();
-        pathBuilder.append(getClass().getClassLoader().getResource("serialization").toString().replace("file:", ""));
-        pathBuilder.append(File.separatorChar).append(SERIALIZED_REQUIREMENTS);
-        SerializationUtils.writeSerializedRequirements(pathBuilder.toString(), requirements);
-    }
-    
-    /**
      * Calculate cosine similarity for each {@link org.re.model.WordPair} and requirement list 
      * @throws IOException 
      */
-    public void calculateCosineSimilarity() throws IOException {
+    public void calculateCosineSimilarity(SoftwareSystem system) throws IOException {
+        String path;
+        switch (system) {
+            case FIREFOX:
+                path = ExporterUtils.FIREFOX_REQUIREMENTS;
+                break;
+            case MYLYN:
+                path = ExporterUtils.MYLYN_REQUIREMENTS;
+                break;
+            default:
+                throw new IllegalArgumentException("Invalid system: " + system);
+        }
+        
         // Get list of existing requirements
-        String requirements = readFile(getClass().getClassLoader().getResource(FIREFOX_REQUIREMENTS).getPath());
+        String requirements = Utils.readFile(path);
         // Only calculate requirement vector once
         // Iterate through each word pair to calculate cosine tf-idf
         CosineDocumentSimilarity cds = new CosineDocumentSimilarity(requirements);
@@ -184,25 +221,22 @@ public class RequirementController implements Initializable, IController{
     }
     
     /**
-     * Read file's content and store into a string
-     * 
-     * @param path File path
-     * @return  Content of file as a string
-     * @throws IOException
+     * Iterate through the word list to select the pair of most dominant nouns and verbs
+     * @param sys
+     * @param wordList1
+     * @param wordList2
      */
-    public String readFile(String path) {
-        Scanner sc = null;
-        StringBuilder bd = new StringBuilder();
-        try (FileInputStream inputStream = new FileInputStream(path)){
-            sc = new Scanner(inputStream, "UTF-8");
-            while (sc.hasNextLine()) {
-                String line = sc.nextLine();
-                bd.append(line).append(" ");
+    private HashSet<WordPair> exploreTopicWords(SoftwareSystem sys, ArrayList<TopicWord> wordList1, ArrayList<TopicWord> wordList2) {
+        HashSet<WordPair> wps = new HashSet<>();
+        for (TopicWord tw1 : wordList1) {
+            for (TopicWord tw2 : wordList2) {
+                WordPair wp = makeWordPair(sys, tw1, tw2);
+                if (wp != null) {
+                    wps.add(wp);
+                }
             }
-        } catch (IOException e) {
-            e.printStackTrace();
         }
-        return bd.toString();
+        return wps;
     }
     
     /**
@@ -266,13 +300,13 @@ public class RequirementController implements Initializable, IController{
     public void setRequirements(ObservableList<Requirement> requirements) {
         this.requirements = requirements;
     }
-
+    
     @Override
     public void constructTableView() {
         TreeItem<Requirement> root = new RecursiveTreeItem<Requirement>(requirements, RecursiveTreeObject::getChildren);
         requirementTableView.setRoot(root);
     }
-
+    
     @Override
     public void initializeCellValues() {
         setCellValueRequirementId();
@@ -290,10 +324,5 @@ public class RequirementController implements Initializable, IController{
         requirementTableView.setEditable(true);
 //        constructTableView();
         initializeCellValues();
-    }
-
-    @Override
-    public void makeNewView(View target, String title, String url) {
-        
     }
 }

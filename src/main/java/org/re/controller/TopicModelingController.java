@@ -1,6 +1,3 @@
-/**
- * 
- */
 package org.re.controller;
 
 import java.io.File;
@@ -16,15 +13,25 @@ import java.util.ResourceBundle;
 import java.util.TreeSet;
 import java.util.regex.Pattern;
 
+import org.apache.log4j.Logger;
 import org.re.common.Message;
 import org.re.common.SoftwareSystem;
 import org.re.common.View;
 import org.re.model.Topic;
 import org.re.model.TopicWord;
 import org.re.model.Word;
+import org.re.scrape.BaseScraper;
+import org.re.scrape.model.AdjacencyMatrixGraph;
+import org.re.scrape.model.Product;
+import org.re.scrape.model.StakeHolderGraph;
 import org.re.utils.AlertFactory;
+import org.re.utils.ExporterUtils;
 import org.re.utils.StageFactory;
+import org.re.utils.Utils;
+import org.re.utils.cluster.Cluster;
+import org.re.utils.cluster.KMedoids;
 
+import com.jfoenix.controls.JFXButton;
 import com.jfoenix.controls.JFXComboBox;
 import com.jfoenix.controls.JFXTextField;
 import com.jfoenix.controls.JFXTreeTableView;
@@ -47,6 +54,7 @@ import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
@@ -65,44 +73,47 @@ import javafx.stage.Stage;
  * @author doquocanh-macbook
  *
  */
-public class TopicModelingController implements Initializable, IController {
+public class TopicModelingController extends BaseController implements Initializable, IController, ITable {
     // Topic modeling
     private ParallelTopicModel model;
     private InstanceList instances;
 
     // FXML elements associate with GUI
-    @FXML
-    private AnchorPane mainAP;
-    @FXML
-    private Button browseFileBT;
-    @FXML
-    private JFXTextField filePathTF;
+    @FXML private AnchorPane mainAP;
+    @FXML private Button browseFileBT;
+    @FXML private JFXButton generateTopicBT;
+    
+    @FXML private JFXTextField filePathTF;
 
     // LDA topic modeling parameters
     private int NUMBER_OF_TOPICS = 10;
     private int NUMBER_OF_ITERATIONS = 100;
     private int NUMBER_OF_THREADS = 2;
 
-    @FXML
-    private JFXComboBox<Integer> topicCB;
-    @FXML
-    private JFXComboBox<Integer> iterationCB;
-    @FXML
-    private JFXComboBox<Integer> threadCB;
+    @FXML private JFXComboBox<Integer> topicCB;
+    @FXML private JFXComboBox<Integer> iterationCB;
+    @FXML private JFXComboBox<Integer> threadCB;
 
     // Topic tree table view
-    @FXML
-    private JFXTreeTableView<Topic> topicTableView;
-    @FXML
-    private TreeTableColumn<Topic, String> topicNumberCol;
-    @FXML
-    private TreeTableColumn<Topic, String> topicDistributionCol;
-    @FXML
-    private TreeTableColumn<Topic, String> topicDetailsCol;
+    @FXML private JFXTreeTableView<Topic> topicTableView;
+    @FXML private TreeTableColumn<Topic, String> topicNumberCol;
+    @FXML private TreeTableColumn<Topic, String> topicDistributionCol;
+    @FXML private TreeTableColumn<Topic, String> topicDetailsCol;
 
-    private File SELECTED_FILE; // User selects file to extract topics
+    private File selectedFile; // User selects file to extract topics
 
     private ObservableList<Topic> topics; // List of generated topics
+    
+    private BaseScraper webScraper;
+    
+    private SoftwareSystem system;
+    
+    private int from; // Starting issue id
+    private int to;   // Ending issue id
+    
+    private String graphInfo; // File path of graph info file
+    
+    static final Logger logger = Logger.getLogger(TopicModelingController.class);
 
     // Default constructor
     public TopicModelingController() {
@@ -112,19 +123,43 @@ public class TopicModelingController implements Initializable, IController {
     public ObservableList<Topic> getTopics() {
         return topics;
     }
+    
+    public void setSelectedFile(File file) {
+        this.selectedFile = file;
+    }
+    
+    public void setScraper(BaseScraper scraper) {
+        this.webScraper = scraper;
+    }
+    
+    public void setFrom(int from) {
+        this.from = from;
+    }
+    
+    public void setTo(int to) {
+        this.to = to;
+    }
+    
+    public void setGraphInfo(String graphInfo) {
+        this.graphInfo = graphInfo;
+    }
+    
+    public void setSystem(SoftwareSystem system) {
+        this.system = system;
+    }
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         browseFileBT.setOnAction(event -> {
-            SELECTED_FILE = loadFile();
-            if (SELECTED_FILE != null) {
-                if (isFileEligible(SELECTED_FILE)) {
-                    filePathTF.setText(SELECTED_FILE.getAbsolutePath());
+            selectedFile = loadFile();
+            if (selectedFile != null) {
+                if (isFileEligible(selectedFile)) {
+                    filePathTF.setText(selectedFile.getAbsolutePath());
                 } else {
                     Alert alert = AlertFactory.generateAlert(AlertType.WARNING, Message.INVALID_FILE_TYPE);
                     alert.show();
                     // Re-assign selected file to null
-                    SELECTED_FILE = null;
+                    selectedFile = null;
                     // Clear text represented for selected file
                     filePathTF.clear();
                 }
@@ -132,6 +167,58 @@ public class TopicModelingController implements Initializable, IController {
                 // User didn't select any file. Do nothing.
             }
         });
+        
+        generateTopicBT.setOnAction(event -> {
+            Task<Product> task = new Task<Product>() {
+                @Override
+                protected Product call() throws Exception {
+                    webScraper.scrape(from, to);
+                    // Export scraped data to files
+                    ExporterUtils.exportAll(webScraper);
+                    return webScraper.getProduct();
+                }
+            };
+            
+            task.setOnSucceeded(e -> {
+                topics = FXCollections.observableArrayList();
+                Product p = task.getValue();
+                
+                // Construct stakeholders graph, cluster as related groups then collect
+                // all comments, issue description made by stakeholders
+                StakeHolderGraph shGraph;
+                try {
+                    shGraph = new StakeHolderGraph(graphInfo);
+                    KMedoids<AdjacencyMatrixGraph> kmedoids = new KMedoids<>(3, 10);
+                    ArrayList<Cluster<Integer>> clusters = kmedoids.cluster((AdjacencyMatrixGraph)shGraph.G());
+                    
+                    StringBuilder bd = new StringBuilder();
+                    // Determine part-of-speech for each topic words
+                    PosController pc = new PosController();
+                    ArrayList<Word> words = new ArrayList<Word>();
+                    
+                    for (Cluster<Integer> cluster : clusters) {
+                        logger.info(cluster);
+                        bd.append(p.toCorpus(cluster, shGraph));
+                        selectedFile = Utils.makeTempFile(bd.toString());
+                        // Extract topics and construct table view
+                        extractTopics(selectedFile, NUMBER_OF_TOPICS, NUMBER_OF_ITERATIONS, NUMBER_OF_THREADS);
+                        extractTopicInfo(5);
+                        words.addAll(pc.getTaggedWords(selectedFile));
+                    }
+                    
+                    for (Topic t : topics) {
+                        pc.assignPOS(t, words);
+                    }
+                    // Generate list of requirements from extracted topics
+                    makeNewView(View.REQUIREMENT_VIEW, "", REQUIREMENT_VIEW);
+                } catch (IOException | URISyntaxException e1) {
+                    e1.printStackTrace();
+                }
+            });
+            
+            new Thread(task).start();
+        });
+        
         // Initialize topic modeling parameters
         initializeParameters();
 
@@ -144,34 +231,6 @@ public class TopicModelingController implements Initializable, IController {
         initializeCellValues();
     }
 
-    @FXML
-    private void generateTopics() {
-        // If user hasn't selected any file, do nothing
-        if (SELECTED_FILE == null) {
-            Alert alert = AlertFactory.generateAlert(AlertType.WARNING, Message.NOT_SELECTED_ANY_FILE);
-            alert.show();
-            return;
-        }
-        try {
-            // Erase current content data for table view first
-            topics = FXCollections.observableArrayList();
-            // Extract topics and construct table view
-            extractTopics(SELECTED_FILE, NUMBER_OF_TOPICS, NUMBER_OF_ITERATIONS, NUMBER_OF_THREADS);
-            extractTopicInfo(5);
-            constructTableView();
-            // Determine part-of-speech for each topic words
-            PosController pc = new PosController();
-            ArrayList<Word> words = pc.getTaggedWords(SELECTED_FILE);
-            for (Topic t : topics) {
-                pc.assignPOS(t, words);
-            }
-         // Generate list of requirements from extracted topics
-            makeNewView(View.REQUIREMENT_VIEW, "Generated Requirements", "view/RequirementView.fxml");
-        } catch (IOException | URISyntaxException e) {
-            e.printStackTrace();
-        }
-    }
-
     /**
      * <p>
      * Extract topic modeling information. 
@@ -179,7 +238,7 @@ public class TopicModelingController implements Initializable, IController {
      * </p>
      * @param wordsPerTopic Number of words per topic to be extracted
      */
-    public void extractTopicInfo(int wordsPerTopic) {
+    private void extractTopicInfo(int wordsPerTopic) {
         // The data alphabet maps word IDs to strings
         Alphabet dataAlphabet = instances.getDataAlphabet();
         // Estimate the topic distribution of the first instance,
@@ -227,7 +286,7 @@ public class TopicModelingController implements Initializable, IController {
      * @throws IOException
      * @throws URISyntaxException
      */
-    public void extractTopics(File f, int numTopics, int numIteration, int numThreads)
+    private void extractTopics(File f, int numTopics, int numIteration, int numThreads)
             throws IOException, URISyntaxException {
         // Begin by importing documents from text to feature sequences
         ArrayList<Pipe> pipeList = new ArrayList<Pipe>();
@@ -236,8 +295,8 @@ public class TopicModelingController implements Initializable, IController {
         pipeList.add(new CharSequenceLowercase());
         pipeList.add(new CharSequence2TokenSequence(Pattern.compile("\\p{L}[\\p{L}\\p{P}]+\\p{L}")));
 
-        String stoplist = getClass().getClassLoader().getResource("stoplists/en.txt").toExternalForm().replace("file:","");
-        File stopWords = new File(stoplist);
+//        String stoplist = getClass().getClassLoader().getResource("stoplists/en.txt").getFile();
+        File stopWords = Utils.loadResourcesAsFile(this.getClass(), "/stoplists/en.txt"); //new File(stoplist);
 
         pipeList.add(new TokenSequenceRemoveStopwords(stopWords, "UTF-8", false, false, false));
         pipeList.add(new TokenSequence2FeatureSequence());
@@ -275,8 +334,7 @@ public class TopicModelingController implements Initializable, IController {
     /**
      * Currently only support topic modeling for text file
      * 
-     * @param f
-     *            checked file
+     * @param f checked file
      * @return null if not text file
      */
     private boolean isFileEligible(File f) {
@@ -371,16 +429,15 @@ public class TopicModelingController implements Initializable, IController {
         try {
             root = (Parent)loader.load();
         } catch (IOException e) {
-            System.err.println("Could not load url: " + url);
+            logger.error("Could not load url: " + url);
             e.printStackTrace();
             return;
         }
         switch(target) {
             case REQUIREMENT_VIEW:
                 RequirementController requirementController = loader.<RequirementController>getController();
-//                requirementController.buildWordPairs(SoftwareSystem.FIREFOX, topics);
                 try {
-                    requirementController.toRequirements(SoftwareSystem.FIREFOX, topics);
+                    requirementController.toRequirements(system, topics);
                 } catch (IOException e) {
                     e.printStackTrace();
                     return;

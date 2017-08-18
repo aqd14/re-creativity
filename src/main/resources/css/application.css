@@ -128,3 +128,17 @@
 .custom_button:pressed {
 	-fx-background-color: #013163;
 }
+
+.skip_button {
+    -fx-background-color: #707172;
+    -fx-text-fill: white;
+    -fx-font: 16px Helvetica;
+}
+
+.skip_button:hover {
+    -fx-background-color: #575959;
+}
+
+.skip_button:pressed {
+    -fx-background-color: #545556;
+}

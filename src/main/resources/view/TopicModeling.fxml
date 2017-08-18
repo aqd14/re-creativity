@@ -118,7 +118,7 @@
                         </JFXComboBox>
                      </children>
                   </VBox>
-                  <JFXButton fx:id="generateTopicBT" buttonType="RAISED" onAction="#generateTopics" styleClass="custom_button" text="Generate Topic">
+                  <JFXButton fx:id="generateTopicBT" buttonType="RAISED" styleClass="custom_button" text="Generate Topic">
                      <HBox.margin>
                         <Insets left="50.0" top="30.0" />
                      </HBox.margin>

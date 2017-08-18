@@ -38,6 +38,21 @@ public class Commenter extends Stakeholder {
     public void setComments(HashMap<Integer, ArrayList<Comment>> comments) {
         this.comments = comments;
     }
+    
+    /*
+     * Collect all comments from this user and append to an united string
+     */
+    public String collectComments() {
+        if (comments == null) {
+            return "";
+        }
+        
+        StringBuilder bd = new StringBuilder();
+        for (Integer id : comments.keySet()) {
+            bd.append(comments.get(id));
+        }
+        return bd.toString();
+    }
 
     /* (non-Javadoc)
      * @see java.lang.Object#toString()

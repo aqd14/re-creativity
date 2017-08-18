@@ -3,8 +3,17 @@
  */
 package org.re.utils;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.PrintWriter;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.net.URL;
+import java.util.Scanner;
 
 import org.re.common.POS;
 
@@ -37,6 +46,79 @@ public class Utils {
         }
         bd.append(src.substring(0, pos)).append(replacement).append(src.substring(pos + old.length(), src.length()));
         return bd.toString();
+    }
+    
+    /**
+     * Read file's content and store into a string
+     * 
+     * @param path File path
+     * @return  Content of file as a string
+     * @throws IOException
+     */
+    public static String readFile(File file) {
+        Scanner sc = null;
+        StringBuilder bd = new StringBuilder();
+        try (FileInputStream inputStream = new FileInputStream(file)){
+            sc = new Scanner(inputStream, "UTF-8");
+            while (sc.hasNextLine()) {
+                String line = sc.nextLine();
+                bd.append(line).append(" ");
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return bd.toString();
+    }
+    
+    public static String readFile(String path) {
+        File file = new File(path);
+        return readFile(file);
+    }
+    
+    @SuppressWarnings("rawtypes")
+    public static File loadResourcesAsFile(Class cl, String resource) {
+        File file = null;
+        URL res = cl.getResource(resource);
+        if (res.toString().startsWith("jar:")) {
+            try {
+                InputStream input = cl.getResourceAsStream(resource);
+                file = File.createTempFile("tempfile", ".tmp");
+                OutputStream out = new FileOutputStream(file);
+                int read;
+                byte[] bytes = new byte[1024];
+
+                while ((read = input.read(bytes)) != -1) {
+                    out.write(bytes, 0, read);
+                }
+                file.deleteOnExit();
+                out.close();
+            } catch (IOException ex) {
+                ex.printStackTrace();
+            }
+        } else {
+            //this will probably work in your IDE, but not from a JAR
+            file = new File(res.getFile());
+        }
+
+        if (file != null && !file.exists()) {
+            throw new RuntimeException("Error: File " + file + " not found!");
+        }
+        return file;
+    }
+    
+    public static File makeTempFile(String content) {
+        File file = null;
+        try {
+            file = File.createTempFile("tempfile", ".tmp");
+            PrintWriter out = new PrintWriter(file);
+            out.write(content);
+            file.deleteOnExit();
+            out.close();
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        return file;
     }
     
     /**

@@ -68,7 +68,8 @@ public class Cluster<T> {
         for (int i = 1; i < dataPoints.size(); i++) {
             sb.append("-").append(dataPoints.get(i));
         }
-        sb.append("\n").append("Max communication: ").append(totalComs).append("\n");
+        sb.append("\nNumber of stakeholders: ").append(dataPoints.size());
+        sb.append("\nMax communication: ").append(totalComs).append("\n");
         return sb.toString();
     }
 }

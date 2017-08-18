@@ -1,5 +1,7 @@
 package org.re;
 
+import org.re.controller.BaseController;
+
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -10,7 +12,7 @@ public class Main extends Application {
     @Override
     public void start(Stage primaryStage) {
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getClassLoader().getResource("view/TopicModeling.fxml"));
+            FXMLLoader loader = new FXMLLoader(getClass().getClassLoader().getResource(BaseController.SETUP_VIEW));
             Parent root = (Parent) loader.load();
             primaryStage.setTitle("RE Creativity");
             primaryStage.setScene(new Scene(root));

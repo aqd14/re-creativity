@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import com.jfoenix.controls.JFXButton?>
+<?import com.jfoenix.controls.JFXComboBox?>
+<?import com.jfoenix.controls.JFXTextField?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
+
+<StackPane prefHeight="278.0" prefWidth="274.0" stylesheets="@../css/application.css" xmlns="http://javafx.com/javafx/8.0.111" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.re.controller.SetupController">
+   <children>
+      <VBox prefHeight="200.0" prefWidth="277.0">
+         <children>
+            <HBox prefHeight="100.0" prefWidth="200.0">
+               <children>
+                  <VBox prefHeight="83.0" prefWidth="236.0">
+                     <children>
+                        <HBox prefHeight="100.0" prefWidth="200.0">
+                           <children>
+                              <JFXComboBox fx:id="systemSelectionCB" prefHeight="40.0" prefWidth="124.0">
+                                 <HBox.margin>
+                                    <Insets left="5.0" top="10.0" />
+                                 </HBox.margin>
+                              </JFXComboBox>
+                           </children>
+                        </HBox>
+                     </children>
+                  </VBox>
+               </children>
+            </HBox>
+            <HBox layoutX="10.0" layoutY="10.0" prefHeight="100.0" prefWidth="200.0">
+               <children>
+                  <VBox prefHeight="68.0" prefWidth="272.0">
+                     <children>
+                        <HBox prefHeight="100.0" prefWidth="200.0">
+                           <children>
+                              <Label prefHeight="26.0" prefWidth="192.0" text="Setup Issue IDs range">
+                                 <HBox.margin>
+                                    <Insets left="5.0" top="10.0" />
+                                 </HBox.margin>
+                              </Label>
+                           </children>
+                        </HBox>
+                        <HBox prefHeight="100.0" prefWidth="200.0">
+                           <children>
+                              <Label prefHeight="26.0" prefWidth="64.0" text="Between">
+                                 <HBox.margin>
+                                    <Insets left="5.0" />
+                                 </HBox.margin>
+                              </Label>
+                              <JFXTextField fx:id="fromId" prefHeight="25.0" prefWidth="75.0">
+                                 <HBox.margin>
+                                    <Insets left="5.0" right="5.0" />
+                                 </HBox.margin>
+                              </JFXTextField>
+                              <Label prefHeight="26.0" prefWidth="44.0" text="and">
+                                 <HBox.margin>
+                                    <Insets left="10.0" />
+                                 </HBox.margin>
+                              </Label>
+                              <JFXTextField fx:id="toId" prefHeight="25.0" prefWidth="75.0">
+                                 <HBox.margin>
+                                    <Insets right="5.0" />
+                                 </HBox.margin>
+                              </JFXTextField>
+                           </children>
+                           <VBox.margin>
+                              <Insets top="25.0" />
+                           </VBox.margin>
+                        </HBox>
+                     </children>
+                  </VBox>
+               </children>
+               <VBox.margin>
+                  <Insets top="5.0" />
+               </VBox.margin>
+            </HBox>
+            <HBox prefHeight="50.0" prefWidth="274.0">
+               <children>
+                  
+                  <JFXButton fx:id="skipSetupButton" buttonType="RAISED" onAction="#skipSetup" prefHeight="30.0" prefWidth="86.0" styleClass="skip_button" text="Skip">
+                     <font>
+                        <Font name="Georgia" size="14.0" />
+                     </font>
+                     <HBox.margin>
+                        <Insets left="10.0" />
+                     </HBox.margin>
+                  </JFXButton>
+                  <JFXButton fx:id="confirmSetupButton" buttonType="RAISED" onAction="#confirmSetup" prefHeight="30.0" prefWidth="86.0" styleClass="custom_button" text="Confirm">
+                     <font>
+                        <Font name="Georgia" size="14.0" />
+                     </font>
+                     <HBox.margin>
+                        <Insets left="80.0" />
+                     </HBox.margin>
+                  </JFXButton>
+               </children>
+               <VBox.margin>
+                  <Insets top="50.0" />
+               </VBox.margin>
+            </HBox>
+         </children>
+      </VBox>
+   </children>
+</StackPane>

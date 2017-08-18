@@ -7,7 +7,9 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import org.apache.log4j.Logger;
 import org.re.common.SoftwareSystem;
+import org.re.utils.cluster.Cluster;
 
 /**
  * @author doquocanh-macbook
@@ -23,6 +25,8 @@ public class Product implements Serializable {
     private ArrayList<Issue> issues; // List of issues that product possesses
     private HashMap<String, Commenter> commenters; // Map commenters' username
 
+    static final Logger logger = Logger.getLogger(Product.class);
+    
     public Product(SoftwareSystem system) {
         this.system = system;
         issues = new ArrayList<>();
@@ -75,6 +79,43 @@ public class Product implements Serializable {
     public void setCommenters(HashMap<String, Commenter> commenters) {
         this.commenters = commenters;
     }
+    
+    /**
+     * Collect all comments from stakeholders within cluster to a single string
+     * 
+     * @param cluster   given cluster
+     * @return  a collection of comments
+     */
+    public String toCorpus(Cluster<Integer> cluster, StakeHolderGraph graph) {
+        // Precondition check
+        if (cluster == null) {
+            return "";
+        }
+        
+        StringBuilder sb = new StringBuilder();
+        
+        // Collect comments from medoid
+        int medoid = cluster.getMedoid().getValue();
+        String username = graph.name(medoid);
+        logger.info("Medoid number: " + medoid + " --- Medoid name: " + username);
+        Commenter c = commenters.get(username);
+        sb.append(c.collectComments());
+        
+        // Collect comments from all other stakeholders in the group (cluster)
+        ArrayList<Integer> points = cluster.getDataPoints();
+        for (Integer p : points) {
+            username = graph.name(p);
+            logger.info("datapoint: " + p + " --- datapoint name: " + username);
+            c = commenters.get(username);
+            // TODO: why c can be null?
+            if (c != null) {
+                sb.append(c.collectComments());
+            } else {
+                logger.error("Can't get commenter with username: " + username);
+            }
+        }
+        return sb.toString();
+    }
 
     /* (non-Javadoc)
      * @see java.lang.Object#toString()
@@ -83,5 +124,4 @@ public class Product implements Serializable {
     public String toString() {
         return "Product [system=" + system + ", issues=" + issues + ", commenters=" + commenters + "]";
     }
-
 }

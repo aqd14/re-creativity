@@ -176,6 +176,7 @@ public class KMedoids<T extends AdjacencyMatrixGraph> implements Clusterable<T> 
                 maxComs = totalComs;
             }
         }
+        // TODO: Problem when total communications even less than number of stakeholders in group
         // Update total communication to medoid
         cluster.setTotalComs(maxComs);
         return medoid;

@@ -74,13 +74,14 @@ public class Comment implements Serializable {
     @Override
     public String toString() {
         StringBuilder builder = new StringBuilder();
-        builder.append("Comment [issueID=");
-        builder.append(issueID);
+//        builder.append("Comment [issueID=");
+//        builder.append(issueID);
 //        builder.append(", commenter=");
 //        builder.append(commenter);
 //        builder.append(", content=");
 //        builder.append(content);
-        builder.append("]");
+//        builder.append("]");
+        builder.append(content);
         return builder.toString();
     }
 

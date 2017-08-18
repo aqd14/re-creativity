@@ -3,8 +3,6 @@ package org.re.controller;
 import org.re.common.View;
 
 public interface IController {
-    public void constructTableView();
-    public void initializeCellValues();
     
     /**
      * Create new stage besides primary one. That means there are more than one views displayed 
