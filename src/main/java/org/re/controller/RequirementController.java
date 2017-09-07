@@ -21,42 +21,100 @@ import org.re.utils.CosineDocumentSimilarity;
 import org.re.utils.ExporterUtils;
 import org.re.utils.Utils;
 
-import com.jfoenix.controls.JFXTreeTableView;
-import com.jfoenix.controls.RecursiveTreeItem;
-import com.jfoenix.controls.datamodels.treetable.RecursiveTreeObject;
+import com.jfoenix.controls.JFXButton;
+import com.jfoenix.controls.JFXComboBox;
 
-import javafx.beans.property.ReadOnlyStringWrapper;
+import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
-import javafx.scene.control.TreeItem;
-import javafx.scene.control.TreeTableColumn;
+import javafx.scene.control.CheckBox;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
+import javafx.scene.control.cell.CheckBoxTableCell;
+import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.layout.StackPane;
+import javafx.util.Callback;
 
 public class RequirementController extends BaseController implements Initializable, ITable{
     
     // Logger
     final static Logger logger = Logger.getLogger(RequirementController.class);
     
+    @FXML private StackPane tablePane;
+//    @FXML private JFXTreeTableView<Requirement> requirementTableView;
+//    @FXML private TreeTableColumn<Requirement, String> idCol;
+//    @FXML private TreeTableColumn<Requirement, String> requirementCol;
+    @FXML private JFXComboBox<Double> cosineThreshold; // Cosine similarity threshold to filter most unfamiliar word pairs 
+    @FXML private JFXButton updateTableBT; // Refresh table with user-selected requirements 
+    @FXML private JFXButton finishBT;      // Separately save selected and un-selected requirements to files
+    
+    // Maintain a list of requirements that user prefers to keep.
+    private ObservableList<Requirement> pickedRequirements;
+    
+    // Maintain a list of requirements that user might not want to keep
+    // at the moment but might consider in the future
+    private ObservableList<Requirement> unpickedRequirements;
+    
     // Cosine similarity threshold to filter unfamiliar word pair
-    private final double COSINE_THRESHOLD = 0.15;
+    private double COSINE_THRESHOLD = 0.15; // default value
     
     ObservableList<Requirement> requirements = FXCollections.observableArrayList();
     private HashSet<WordPair> wordPairs = new HashSet<>();
     
-    @FXML
-    private JFXTreeTableView<Requirement> requirementTableView;
-    @FXML
-    private TreeTableColumn<Requirement, String> idCol;
-    @FXML
-    private TreeTableColumn<Requirement, String> requirementCol;
-    
     int id; // Temporary requirement id. Increase for each eligible requirement
+    
+    private double highestCosine = Double.MIN_NORMAL;
     
     public RequirementController() {
         
+    }
+
+    @Override
+    public void initialize(URL location, ResourceBundle resources) {
+        wordPairs = new HashSet<>();
+        // Initialize tree table view
+        requirements = FXCollections.observableArrayList();
+        pickedRequirements = FXCollections.observableArrayList();
+        unpickedRequirements = FXCollections.observableArrayList();
+//        TreeItem<Requirement> root = new RecursiveTreeItem<Requirement>(requirements, RecursiveTreeObject::getChildren);
+//        requirementTableView.setRoot(root);
+//        requirementTableView.setShowRoot(false);
+//        requirementTableView.setEditable(true);
+        
+        // Setup property for cosine threshold combobox
+        ObservableList<Double> options = FXCollections.observableArrayList(0.1, 0.15, 0.2, 0.3, 0.4);
+        cosineThreshold.setItems(options);
+        cosineThreshold.getSelectionModel().select(COSINE_THRESHOLD);
+        
+        // Update requirement list based on the change in cosine similarity
+        cosineThreshold.valueProperty().addListener(new ChangeListener<Double>() {
+            @Override
+            public void changed(ObservableValue<? extends Double> observable, Double oldValue, Double newValue) {
+                if (oldValue != newValue) {
+                    logger.info("Change cosine threshold from " + oldValue + " to " + newValue);
+                    // Make a copy of list of word pairs and filter out the one with values below threshold
+                    // This means that those pairs are the most unfamiliar ones with existing requirements
+                    HashSet<WordPair> copy = makeCopyWordPair();
+                    removeIfGreaterOrEqual(copy, newValue*getHighestCosine());
+                    requirements.clear();
+//                    
+//                    // Now, ready to generate creative requirements from most unfamiliar word pairs
+//                    for (WordPair wp : copy) {
+//                        Requirement r = new Requirement(String.valueOf(++id), wp.getSystem(), wp.getVerb().getWord(), wp.getNoun().getWord());
+//                        requirements.add(r);
+//                    }
+//                    // Re-construct table view of new requirements
+//                    constructTableView();
+                }
+            }
+        });
     }
     
     /**
@@ -97,7 +155,7 @@ public class RequirementController extends BaseController implements Initializab
         calculateCosineSimilarity(system);
         // Filter out those word pairs with cosine <= 0.15*highest_cosine
         // This means that those pairs are the most unfamiliar ones with existing requirements
-        removeIfGreaterOrEqual(COSINE_THRESHOLD*getHighestCosine());
+        removeIfGreaterOrEqual(wordPairs, COSINE_THRESHOLD*getHighestCosine());
         // Now, ready to generate creative requirements from most unfamiliar word pairs
         for (WordPair wp : wordPairs) {
             Requirement r = new Requirement(String.valueOf(++id), wp.getSystem(), wp.getVerb().getWord(), wp.getNoun().getWord());
@@ -245,13 +303,14 @@ public class RequirementController extends BaseController implements Initializab
      * @return highest cosine of a word pair in the set
      */
     private double getHighestCosine() {
-        double highest = -1;
-        for (WordPair wp : wordPairs) {
-            if (wp.getCosineSimilarity() > highest) {
-                highest = wp.getCosineSimilarity();
+        if (highestCosine == Double.MIN_VALUE) {
+            for (WordPair wp : wordPairs) {
+                if (wp.getCosineSimilarity() > highestCosine) {
+                    highestCosine = wp.getCosineSimilarity();
+                }
             }
         }
-        return highest;
+        return highestCosine;
     }
     
     /**
@@ -259,9 +318,9 @@ public class RequirementController extends BaseController implements Initializab
      * 
      * @param threshold
      */
-    public void removeIfGreaterOrEqual(double threshold) {
+    public void removeIfGreaterOrEqual(HashSet<WordPair> wps, double threshold) {
         Predicate<WordPair> pre = p->p.getCosineSimilarity() >= threshold;
-        wordPairs.removeIf(pre);
+        wps.removeIf(pre);
     }
     
     /**
@@ -269,22 +328,22 @@ public class RequirementController extends BaseController implements Initializab
      * 
      * @param threshold
      */
-    public void removeIfLesser(double threshold) {
+    public void removeIfLesser(HashSet<WordPair> wps, double threshold) {
         Predicate<WordPair> pre = p->p.getCosineSimilarity() < threshold;
-        wordPairs.removeIf(pre);
+        wps.removeIf(pre);
     }
     
-    private void setCellValueRequirementId() {
-        idCol.setCellValueFactory(
-                param -> new ReadOnlyStringWrapper(param.getValue().getValue().getId()));
-        idCol.setStyle("-fx-alignment: center;");
-    }
-    
-    private void setCellValueRequirement() {
-        requirementCol.setCellValueFactory(
-                param -> new ReadOnlyStringWrapper(param.getValue().getValue().toString()));
-        requirementCol.setStyle("-fx-alignment: center-left;");
-    }
+//    private void setCellValueRequirementId() {
+//        idCol.setCellValueFactory(
+//                param -> new ReadOnlyStringWrapper(param.getValue().getValue().getId()));
+//        idCol.setStyle("-fx-alignment: center;");
+//    }
+//    
+//    private void setCellValueRequirement() {
+//        requirementCol.setCellValueFactory(
+//                param -> new ReadOnlyStringWrapper(param.getValue().getValue().toString()));
+//        requirementCol.setStyle("-fx-alignment: center-left;");
+//    }
     
     /**
      * @return requirements list
@@ -303,26 +362,100 @@ public class RequirementController extends BaseController implements Initializab
     
     @Override
     public void constructTableView() {
-        TreeItem<Requirement> root = new RecursiveTreeItem<Requirement>(requirements, RecursiveTreeObject::getChildren);
-        requirementTableView.setRoot(root);
+        TableView<Requirement> table = createRequirementTable();
+//        requirements = selectRequirements();
+        table.setItems(requirements);
+        
+        // Add table to the pane for displaying
+        tablePane.getChildren().clear();
+        tablePane.getChildren().add(table);
     }
     
-    @Override
-    public void initializeCellValues() {
-        setCellValueRequirementId();
-        setCellValueRequirement();
+//    @Override
+//    public void initializeCellValues() {
+//        setCellValueRequirementId();
+//        setCellValueRequirement();
+//    }
+    
+    private ObservableList<Requirement> selectRequirements() {
+        boolean getPicked = true;
+        boolean getUnpicked = true;
+        boolean getBoth = true;
+        if (getPicked) {
+            return pickedRequirements;
+        }
+        
+        if (getUnpicked) {
+            return unpickedRequirements;
+        }
+        
+        if (getBoth) {
+            pickedRequirements.addAll(unpickedRequirements);
+        }
+        
+        return pickedRequirements;
     }
+    
+    @SuppressWarnings("unchecked")
+    private TableView<Requirement> createRequirementTable() {
 
-    @Override
-    public void initialize(URL location, ResourceBundle resources) {
-        wordPairs = new HashSet<>();
-        // Initialize tree table view
-        requirements = FXCollections.observableArrayList();
-        TreeItem<Requirement> root = new RecursiveTreeItem<Requirement>(requirements, RecursiveTreeObject::getChildren);
-        requirementTableView.setRoot(root);
-        requirementTableView.setShowRoot(false);
-        requirementTableView.setEditable(true);
-//        constructTableView();
-        initializeCellValues();
+        TableView<Requirement> table = new TableView<>();
+        table.setEditable(true);
+        
+        TableColumn<Requirement, String> idCol = new TableColumn<>("ID");
+        idCol.setCellValueFactory(param -> new SimpleStringProperty(param.getValue().getId()));
+        idCol.setPrefWidth(100);
+        
+        TableColumn<Requirement, String> requirementCol = new TableColumn<>("Requirements");
+        requirementCol.setCellValueFactory(param -> new SimpleStringProperty(param.getValue().toString()));
+        requirementCol.setPrefWidth(500);
+        
+        TableColumn<Requirement, Boolean> selectReqCol = new TableColumn<>();
+        selectReqCol.setGraphic(new CheckBox());
+        
+        selectReqCol.setCellValueFactory(new PropertyValueFactory<Requirement, Boolean>("selected"));
+        // Add event handler when users select a check box on table
+        selectReqCol.setCellFactory(CheckBoxTableCell.forTableColumn(new Callback<Integer, ObservableValue<Boolean>>() {
+            @Override
+            public ObservableValue<Boolean> call(Integer index) {
+                Requirement item = table.getItems().get(index);
+//                if (item != null) {
+                    // Add/Remove item from the selected list
+//                    if (true == item.isSelected()) {
+//                        pickedRequirements.add(item);
+//                    } else {
+//                        pickedRequirements.remove(item);
+//                    }
+//                    return item.selectedProperty();
+//                } 
+                return new SimpleBooleanProperty(false);
+            }
+        }));
+        selectReqCol.setEditable(true);
+
+        table.getColumns().addAll(selectReqCol, idCol, requirementCol);
+        return table;
     }
+    
+    private HashSet<WordPair> makeCopyWordPair() {
+        HashSet<WordPair> copy = new HashSet<>(wordPairs);
+        return copy;
+    }
+    
+    /**
+     * Refresh table view of requirements
+     * 
+     * @param performingTransactions
+     */
+//    private void refreshTableView() {
+//        for (Requirement r : requirements) {
+//            if (requirementTableView.getItems().contains(t)) { // Remove sold stock (transaction)
+//                portfolioTable.getItems().remove(t);
+//            }
+//        }
+//        // Refresh transaction history by pulling out data from database again and redraw table
+//        // TODO: It might take time, consider the way to update table without accessing database
+//        initTransactionHistory();
+//        initTransactionSummary();
+//    }
 }

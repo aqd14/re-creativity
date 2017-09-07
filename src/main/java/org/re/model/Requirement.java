@@ -7,6 +7,9 @@ import org.re.common.Template;
 
 import com.jfoenix.controls.datamodels.treetable.RecursiveTreeObject;
 
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.SimpleBooleanProperty;
+
 // Object represents for a completed requirement
 // Example: Firefox shall inform matched passwords
 //             |      |     |       |       |
@@ -26,6 +29,8 @@ public class Requirement extends RecursiveTreeObject<Requirement> implements Ser
     private Word noun;
     private Word object;
     
+    private transient BooleanProperty selected;
+    
     public Requirement(String id, SoftwareSystem system, Word verb, Word noun) {
         this.id = id;
         this.system = system;
@@ -33,6 +38,8 @@ public class Requirement extends RecursiveTreeObject<Requirement> implements Ser
         this.verb = verb;
         this.noun = noun;
         this.object = new Word("Default Object");
+        
+        selected = new SimpleBooleanProperty(false);
     }
     
     public Requirement(String id, SoftwareSystem system, Word verb, Word noun, Word object) {
@@ -131,6 +138,24 @@ public class Requirement extends RecursiveTreeObject<Requirement> implements Ser
         this.object = object;
     }
     
+    public BooleanProperty selectedProperty() {
+        return selected;
+    }
+    
+    /**
+     * @return the selected
+     */
+    public boolean isSelected() {
+        return selected.get();
+    }
+
+    /**
+     * @param selected the selected to set
+     */
+    public void setSelected(boolean selected) {
+        this.selected.set(selected);
+    }
+
     @Override
     public String toString() {
         StringBuilder bd = new StringBuilder(opening.getContent());

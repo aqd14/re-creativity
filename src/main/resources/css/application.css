@@ -119,6 +119,8 @@
     -fx-effect: dropshadow( three-pass-box , rgba(0,0,0,0.6) , 5, 0.0 , 0 , 1 );
 	-fx-text-fill: white;
 	-fx-font: 14px Helvetica;
+	-fx-width: 75px;
+	-fx-height: 32px;
 }
 
 .custom_button:hover {
@@ -132,7 +134,9 @@
 .skip_button {
     -fx-background-color: #707172;
     -fx-text-fill: white;
-    -fx-font: 16px Helvetica;
+    -fx-font: 14px Helvetica;
+    -fx-width: 75px;
+    -fx-height: 32px;
 }
 
 .skip_button:hover {

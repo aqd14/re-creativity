@@ -181,8 +181,9 @@ public class TopicModelingController extends BaseController implements Initializ
             
             task.setOnSucceeded(e -> {
                 topics = FXCollections.observableArrayList();
-                Product p = task.getValue();
+                constructTableView();
                 
+                Product p = task.getValue();
                 // Construct stakeholders graph, cluster as related groups then collect
                 // all comments, issue description made by stakeholders
                 StakeHolderGraph shGraph;
@@ -353,7 +354,6 @@ public class TopicModelingController extends BaseController implements Initializ
         topicTableView.setRoot(root);
     }
     
-    @Override
     public void initializeCellValues() {
         setCellValueTopicNumber();
         setCellValueTopicDistribution();

@@ -1,16 +1,59 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import com.jfoenix.controls.JFXTreeTableView?>
-<?import javafx.scene.control.TreeTableColumn?>
+<?import com.jfoenix.controls.JFXButton?>
+<?import com.jfoenix.controls.JFXComboBox?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
 <?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
 
-<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/8.0.111" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.re.controller.RequirementController">
+<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="558.0" prefWidth="663.0" stylesheets="@../css/application.css" xmlns="http://javafx.com/javafx/8.0.111" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.re.controller.RequirementController">
    <children>
-      <JFXTreeTableView fx:id="requirementTableView" prefHeight="400.0" prefWidth="600.0">
-         <columns>
-            <TreeTableColumn fx:id="idCol" editable="false" prefWidth="110.0" text="ID" />
-            <TreeTableColumn fx:id="requirementCol" editable="false" prefWidth="489.0" text="Generated Requirement" />
-         </columns>
-      </JFXTreeTableView>
+      <VBox prefHeight="564.0" prefWidth="656.0">
+         <children>
+            <HBox prefHeight="55.0" prefWidth="656.0">
+               <children>
+                  <Label text="Cosine similarity threshold" underline="true">
+                     <HBox.margin>
+                        <Insets left="10.0" />
+                     </HBox.margin>
+                     <padding>
+                        <Insets top="10.0" />
+                     </padding>
+                  </Label>
+                  <JFXComboBox fx:id="cosineThreshold">
+                     <HBox.margin>
+                        <Insets left="30.0" />
+                     </HBox.margin>
+                  </JFXComboBox>
+               </children>
+               <VBox.margin>
+                  <Insets top="10.0" />
+               </VBox.margin>
+            </HBox>
+            <StackPane fx:id="tablePane" prefHeight="453.0" prefWidth="656.0" />
+            <VBox prefHeight="49.0" prefWidth="656.0">
+               <children>
+                  <HBox prefHeight="100.0" prefWidth="656.0">
+                     <children>
+                        <JFXButton fx:id="updateTableBT" styleClass="skip_button" text="Update">
+                           <HBox.margin>
+                              <Insets left="50.0" />
+                           </HBox.margin></JFXButton>
+                        <JFXButton fx:id="finishBT" styleClass="custom_button" text="Finish">
+                           <HBox.margin>
+                              <Insets left="450.0" />
+                           </HBox.margin></JFXButton>
+                     </children>
+                  </HBox>
+               </children>
+               <VBox.margin>
+                  <Insets top="10.0" />
+               </VBox.margin>
+            </VBox>
+         </children>
+      </VBox>
    </children>
 </AnchorPane>
